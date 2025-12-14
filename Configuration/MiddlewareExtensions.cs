@@ -22,12 +22,14 @@ public static class MiddlewareExtensions
 
         app.UseRouting();
 
+        // Authentication must come before Authorization
+        app.UseAuthentication();
         app.UseAuthorization();
 
         // Configure endpoints
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
+            pattern: "{controller=Reports}/{action=Dashboard}/{id?}");
         
         app.MapRazorPages();
 

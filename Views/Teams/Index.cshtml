@@ -1,0 +1,106 @@
+@using TicketingASP.Models.DTOs
+@using TicketingASP.Models.Common
+@model PagedResult<TeamDto>
+@{
+    ViewData["Title"] = "Teams";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3">Teams</h1>
+                <p class="text-muted">@Model.TotalCount teams found</p>
+            </div>
+            <a href="@Url.Action("Create")" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> New Team
+            </a>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" class="form-control" name="search" value="@ViewBag.Search" placeholder="Search teams...">
+                <select class="form-select" name="isActive" style="width: 150px;">
+                    <option value="true" selected="@(ViewBag.IsActive == true)">Active</option>
+                    <option value="false" selected="@(ViewBag.IsActive == false)">Inactive</option>
+                    <option value="" selected="@(ViewBag.IsActive == null)">All</option>
+                </select>
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Teams Grid -->
+    <div class="row">
+        @if (Model.Items.Any())
+        {
+            @foreach (var team in Model.Items)
+            {
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">@team.Name</h5>
+                                @if (!team.IsActive)
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(team.Description))
+                            {
+                                <p class="card-text text-muted small">@(team.Description.Length > 100 ? team.Description.Substring(0, 97) + "..." : team.Description)</p>
+                            }
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="text-muted">
+                                    <i class="bi bi-people me-1"></i> @team.MemberCount members
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent d-flex gap-2">
+                            <a href="@Url.Action("Details", new { id = team.Id })" class="btn btn-sm btn-outline-primary flex-grow-1">View</a>
+                            <a href="@Url.Action("Edit", new { id = team.Id })" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="card p-5 text-center text-muted">
+                    <i class="bi bi-people fs-1 mb-3"></i>
+                    <p>No teams found.</p>
+                    <a href="@Url.Action("Create")" class="btn btn-primary">Create First Team</a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="row mt-4">
+            <div class="col-12 d-flex justify-content-center">
+                <nav aria-label="Team pagination">
+                    <ul class="pagination">
+                        <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.Page - 1, search = ViewBag.Search, isActive = ViewBag.IsActive })">Previous</a>
+                        </li>
+                        @for (var i = 1; i <= Model.TotalPages && i <= 10; i++)
+                        {
+                            <li class="page-item @(Model.Page == i ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i, search = ViewBag.Search, isActive = ViewBag.IsActive })">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.Page + 1, search = ViewBag.Search, isActive = ViewBag.IsActive })">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+</div>

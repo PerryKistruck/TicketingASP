@@ -1,0 +1,272 @@
+@model TicketingASP.Models.DTOs.FullDashboardDto
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3">Dashboard</h1>
+            <p class="text-muted">Overview of your ticketing system</p>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Tickets</h6>
+                            <h2 class="mb-0">@(Model?.Summary?.TotalTickets ?? 0)</h2>
+                        </div>
+                        <div class="text-primary opacity-50">
+                            <i class="bi bi-ticket-perforated fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-warning h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Open Tickets</h6>
+                            <h2 class="mb-0">@(Model?.Summary?.OpenTickets ?? 0)</h2>
+                        </div>
+                        <div class="text-warning opacity-50">
+                            <i class="bi bi-clock-history fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Resolved Today</h6>
+                            <h2 class="mb-0">@(Model?.Summary?.ResolvedToday ?? 0)</h2>
+                        </div>
+                        <div class="text-success opacity-50">
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-danger h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Overdue</h6>
+                            <h2 class="mb-0">@(Model?.Summary?.OverdueTickets ?? 0)</h2>
+                        </div>
+                        <div class="text-danger opacity-50">
+                            <i class="bi bi-exclamation-triangle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-4 col-sm-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Unassigned</h6>
+                    <h3 class="text-warning mb-0">@(Model?.Summary?.UnassignedTickets ?? 0)</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Critical Priority</h6>
+                    <h3 class="text-danger mb-0">@(Model?.Summary?.CriticalTickets ?? 0)</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">High Priority</h6>
+                    <h3 class="text-warning mb-0">@(Model?.Summary?.HighPriorityTickets ?? 0)</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Tickets by Status</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model?.TicketsByStatus?.Any() == true)
+                    {
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th class="text-end">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var status in Model.TicketsByStatus)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge" style="background-color: @status.Color">@status.StatusName</span>
+                                        </td>
+                                        <td class="text-end">@status.TicketCount</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Tickets by Priority</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model?.TicketsByPriority?.Any() == true)
+                    {
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Priority</th>
+                                    <th class="text-end">Count</th>
+                                    <th class="text-end">Avg Resolution (hrs)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var priority in Model.TicketsByPriority)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge" style="background-color: @priority.Color">@priority.PriorityName</span>
+                                        </td>
+                                        <td class="text-end">@priority.TicketCount</td>
+                                        <td class="text-end">@priority.AvgResolutionHours.ToString("F1")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Performance -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Team Performance</h5>
+                    <a href="@Url.Action("TeamPerformance", "Reports")" class="btn btn-sm btn-outline-primary">View Details</a>
+                </div>
+                <div class="card-body">
+                    @if (Model?.TeamPerformance?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Team</th>
+                                        <th class="text-end">Assigned</th>
+                                        <th class="text-end">Resolved</th>
+                                        <th class="text-end">Overdue</th>
+                                        <th class="text-end">Avg Response (hrs)</th>
+                                        <th class="text-end">Avg Resolution (hrs)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var team in Model.TeamPerformance)
+                                    {
+                                        <tr>
+                                            <td>@team.TeamName</td>
+                                            <td class="text-end">@team.AssignedTickets</td>
+                                            <td class="text-end">@team.ResolvedTickets</td>
+                                            <td class="text-end">
+                                                @if (team.OverdueTickets > 0)
+                                                {
+                                                    <span class="text-danger">@team.OverdueTickets</span>
+                                                }
+                                                else
+                                                {
+                                                    @team.OverdueTickets
+                                                }
+                                            </td>
+                                            <td class="text-end">@team.AvgResponseHours.ToString("F1")</td>
+                                            <td class="text-end">@team.AvgResolutionHours.ToString("F1")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No team performance data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="@Url.Action("Create", "Tickets")" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> New Ticket
+                        </a>
+                        <a href="@Url.Action("Index", "Tickets")" class="btn btn-outline-secondary">
+                            <i class="bi bi-list me-1"></i> View All Tickets
+                        </a>
+                        <a href="@Url.Action("SlaCompliance", "Reports")" class="btn btn-outline-secondary">
+                            <i class="bi bi-graph-up me-1"></i> SLA Report
+                        </a>
+                        <a href="@Url.Action("Index", "Teams")" class="btn btn-outline-secondary">
+                            <i class="bi bi-people me-1"></i> Manage Teams
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Dashboard can be enhanced with Chart.js for visual charts
+        // This is a placeholder for future chart implementations
+    </script>
+}

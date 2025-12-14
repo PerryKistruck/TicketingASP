@@ -1,0 +1,213 @@
+@using TicketingASP.Models.DTOs
+@using TicketingASP.Models.Common
+@model PagedResult<TicketListDto>
+@{
+    ViewData["Title"] = "Tickets";
+    var filter = ViewBag.Filter as TicketFilterDto ?? new TicketFilterDto();
+    var lookups = ViewBag.Lookups as TicketFormLookupsDto;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3">Tickets</h1>
+                <p class="text-muted">@Model.TotalCount tickets found</p>
+            </div>
+            <a href="@Url.Action("Create")" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> New Ticket
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" value="@filter.Search" placeholder="Ticket # or title...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="statusId" class="form-label">Status</label>
+                            <select class="form-select" id="statusId" name="statusId">
+                                <option value="">All Statuses</option>
+                                @if (lookups?.Statuses != null)
+                                {
+                                    @foreach (var status in lookups.Statuses)
+                                    {
+                                        <option value="@status.Id" selected="@(filter.StatusId == status.Id)">@status.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="priorityId" class="form-label">Priority</label>
+                            <select class="form-select" id="priorityId" name="priorityId">
+                                <option value="">All Priorities</option>
+                                @if (lookups?.Priorities != null)
+                                {
+                                    @foreach (var priority in lookups.Priorities)
+                                    {
+                                        <option value="@priority.Id" selected="@(filter.PriorityId == priority.Id)">@priority.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="categoryId" class="form-label">Category</label>
+                            <select class="form-select" id="categoryId" name="categoryId">
+                                <option value="">All Categories</option>
+                                @if (lookups?.Categories != null)
+                                {
+                                    @foreach (var category in lookups.Categories)
+                                    {
+                                        <option value="@category.Id" selected="@(filter.CategoryId == category.Id)">@category.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="assignedTeamId" class="form-label">Team</label>
+                            <select class="form-select" id="assignedTeamId" name="assignedTeamId">
+                                <option value="">All Teams</option>
+                                @if (lookups?.Teams != null)
+                                {
+                                    @foreach (var team in lookups.Teams)
+                                    {
+                                        <option value="@team.Id" selected="@(filter.AssignedTeamId == team.Id)">@team.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-0">
+                    @if (Model.Items.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Ticket #</th>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Category</th>
+                                        <th>Assigned To</th>
+                                        <th>Created</th>
+                                        <th>Due Date</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ticket in Model.Items)
+                                    {
+                                        var isOverdue = ticket.DueDate.HasValue && ticket.DueDate < DateTime.UtcNow;
+                                        <tr class="@(isOverdue ? "table-danger" : "")">
+                                            <td>
+                                                <a href="@Url.Action("Details", new { id = ticket.Id })" class="text-decoration-none fw-medium">
+                                                    @ticket.TicketNumber
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("Details", new { id = ticket.Id })" class="text-decoration-none text-dark">
+                                                    @(ticket.Title.Length > 50 ? ticket.Title.Substring(0, 47) + "..." : ticket.Title)
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <span class="badge" style="background-color: @ticket.StatusColor">@ticket.StatusName</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge" style="background-color: @ticket.PriorityColor">@ticket.PriorityName</span>
+                                            </td>
+                                            <td>@ticket.CategoryName</td>
+                                            <td>@(ticket.AssignedToName ?? ticket.AssignedTeamName ?? "<em class=\"text-muted\">Unassigned</em>")</td>
+                                            <td>@ticket.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (ticket.DueDate.HasValue)
+                                                {
+                                                    <span class="@(isOverdue ? "text-danger fw-bold" : "")">
+                                                        @ticket.DueDate.Value.ToString("MMM dd, yyyy")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                        <i class="bi bi-three-dots"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li><a class="dropdown-item" href="@Url.Action("Details", new { id = ticket.Id })">View Details</a></li>
+                                                        <li><a class="dropdown-item" href="@Url.Action("Edit", new { id = ticket.Id })">Edit</a></li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <form method="post" asp-action="Delete" asp-route-id="@ticket.Id" onsubmit="return confirm('Are you sure you want to delete this ticket?');">
+                                                                @Html.AntiForgeryToken()
+                                                                <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-5 text-center text-muted">
+                            <i class="bi bi-inbox fs-1 mb-3 d-block"></i>
+                            <p>No tickets found matching your criteria.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary">Create First Ticket</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="row mt-4">
+            <div class="col-12 d-flex justify-content-center">
+                <nav aria-label="Ticket pagination">
+                    <ul class="pagination">
+                        <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.Page - 1, search = filter.Search, statusId = filter.StatusId, priorityId = filter.PriorityId, categoryId = filter.CategoryId, assignedTeamId = filter.AssignedTeamId })">Previous</a>
+                        </li>
+                        @for (var i = 1; i <= Model.TotalPages && i <= 10; i++)
+                        {
+                            <li class="page-item @(Model.Page == i ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i, search = filter.Search, statusId = filter.StatusId, priorityId = filter.PriorityId, categoryId = filter.CategoryId, assignedTeamId = filter.AssignedTeamId })">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.Page + 1, search = filter.Search, statusId = filter.StatusId, priorityId = filter.PriorityId, categoryId = filter.CategoryId, assignedTeamId = filter.AssignedTeamId })">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+</div>
