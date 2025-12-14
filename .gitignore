@@ -1,0 +1,114 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Rider
+.idea/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+nuget.exe
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Build results from msbuild
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.ipch
+*.pgc
+*.pgd
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# NCrunch
+*.ncrunch*
+_NCrunch_*
+.*crunch*.local.xml
+
+# Publish/Deploy
+[Pp]ublish/
+[Pp]ublished/
+
+# Chutzpah Test files
+_Chutzpah*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# User secrets
+secrets.json
+
+# Application settings
+appsettings.*.local.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Azure
+ScmType
+.azure/
+
+# Misc
+*.bak
+*.swp
+*.tmp
+*~
+*.cache
+project.lock.json

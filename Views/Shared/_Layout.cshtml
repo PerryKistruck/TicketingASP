@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="TicketingASP - Modern Ticketing Solution" />
+    <title>@ViewData["Title"] - TicketingASP</title>
+    
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="~/css/globals.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    TicketingASP
+                </a>
+                <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                    &#9776;
+                </button>
+                <ul class="nav-links">
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-copyright">&copy; @DateTime.Now.Year TicketingASP. All rights reserved.</p>
+                <ul class="footer-links">
+                    <li><a asp-controller="Home" asp-action="Privacy">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core JavaScript -->
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
