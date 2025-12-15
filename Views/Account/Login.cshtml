@@ -1,6 +1,6 @@
 @model TicketingASP.Models.DTOs.LoginDto
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Sign In";
     Layout = "_Layout";
 }
 
@@ -9,7 +9,7 @@
         <div class="col-md-5">
             <div class="card shadow">
                 <div class="card-header text-center">
-                    <h4 class="mb-0">Login</h4>
+                    <h4 class="mb-0">Sign In</h4>
                 </div>
                 <div class="card-body p-4">
                     <form method="post" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl">
@@ -42,7 +42,7 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                            <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
                         </div>
                     </form>
                 </div>
