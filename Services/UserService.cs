@@ -168,22 +168,36 @@ public class UserService : IUserService
     {
         try
         {
+            _logger.LogInformation("VerifyPassword: Starting verification. StoredHash length={HashLen}, StoredSalt length={SaltLen}",
+                storedHash?.Length ?? 0, storedSalt?.Length ?? 0);
+            
             var saltBytes = Convert.FromBase64String(storedSalt);
+            _logger.LogInformation("VerifyPassword: Decoded salt bytes length={SaltBytesLen}", saltBytes.Length);
+            
             using var hmac = new HMACSHA512(saltBytes);
             var computedHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(password)));
             
+            _logger.LogInformation("VerifyPassword: ComputedHash length={ComputedLen}, StoredHash length={StoredLen}",
+                computedHash.Length, storedHash.Length);
+            
             var isMatch = computedHash == storedHash;
+            
             if (!isMatch)
             {
-                _logger.LogDebug("Password mismatch. Computed hash: {ComputedHash}, Stored hash: {StoredHash}", 
-                    computedHash.Substring(0, Math.Min(20, computedHash.Length)) + "...",
-                    storedHash.Substring(0, Math.Min(20, storedHash.Length)) + "...");
+                _logger.LogWarning("VerifyPassword: MISMATCH! ComputedHash[0..20]={ComputedPrefix}, StoredHash[0..20]={StoredPrefix}", 
+                    computedHash.Substring(0, Math.Min(20, computedHash.Length)),
+                    storedHash.Substring(0, Math.Min(20, storedHash.Length)));
             }
+            else
+            {
+                _logger.LogInformation("VerifyPassword: Password match SUCCESS");
+            }
+            
             return isMatch;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error verifying password: {Message}", ex.Message);
+            _logger.LogError(ex, "VerifyPassword: Exception during verification: {Message}", ex.Message);
             return false;
         }
     }
