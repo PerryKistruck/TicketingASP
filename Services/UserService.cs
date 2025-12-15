@@ -82,6 +82,9 @@ public class UserService : IUserService
         }
 
         // Verify password
+        _logger.LogDebug("Verifying password for user {Email}. Stored hash length: {HashLen}, Salt length: {SaltLen}", 
+            dto.Email, passwordHash?.Length ?? 0, passwordSalt?.Length ?? 0);
+        
         if (!VerifyPassword(dto.Password, passwordHash!, passwordSalt!))
         {
             await _userRepository.UpdateLoginAttemptAsync(id!.Value, false, ipAddress, userAgent);
@@ -161,12 +164,28 @@ public class UserService : IUserService
         return (hash, salt);
     }
 
-    private static bool VerifyPassword(string password, string storedHash, string storedSalt)
+    private bool VerifyPassword(string password, string storedHash, string storedSalt)
     {
-        var saltBytes = Convert.FromBase64String(storedSalt);
-        using var hmac = new HMACSHA512(saltBytes);
-        var computedHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(password)));
-        return computedHash == storedHash;
+        try
+        {
+            var saltBytes = Convert.FromBase64String(storedSalt);
+            using var hmac = new HMACSHA512(saltBytes);
+            var computedHash = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(password)));
+            
+            var isMatch = computedHash == storedHash;
+            if (!isMatch)
+            {
+                _logger.LogDebug("Password mismatch. Computed hash: {ComputedHash}, Stored hash: {StoredHash}", 
+                    computedHash.Substring(0, Math.Min(20, computedHash.Length)) + "...",
+                    storedHash.Substring(0, Math.Min(20, storedHash.Length)) + "...");
+            }
+            return isMatch;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying password: {Message}", ex.Message);
+            return false;
+        }
     }
 
     #endregion
