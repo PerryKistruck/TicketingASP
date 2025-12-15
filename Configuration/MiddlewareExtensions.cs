@@ -11,7 +11,14 @@ public static class MiddlewareExtensions
     public static WebApplication UseApplicationMiddleware(this WebApplication app)
     {
         // Configure the HTTP request pipeline based on environment
-        if (!app.Environment.IsDevelopment())
+        // Check for ShowDetailedErrors setting to enable debugging in Azure without changing environment
+        var showDetailedErrors = app.Configuration.GetValue<bool>("ShowDetailedErrors", false);
+        
+        if (app.Environment.IsDevelopment() || showDetailedErrors)
+        {
+            app.UseDeveloperExceptionPage();
+        }
+        else
         {
             app.UseExceptionHandler("/Home/Error");
             app.UseHsts();
