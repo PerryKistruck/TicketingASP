@@ -113,6 +113,9 @@
                 <div class="card-body">
                     @if (Model?.TicketsByStatus?.Any() == true)
                     {
+                        <div class="chart-container mb-3" style="position: relative; height: 250px;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
                         <table class="table table-sm">
                             <thead>
                                 <tr>
@@ -125,7 +128,7 @@
                                 {
                                     <tr>
                                         <td>
-                                            <span class="badge" style="background-color: @status.Color">@status.StatusName</span>
+                                            <span class="badge text-dark border" style="background-color: @status.Colour; text-shadow: 0 0 2px rgba(255,255,255,0.8);">@status.StatusName</span>
                                         </td>
                                         <td class="text-end">@status.TicketCount</td>
                                     </tr>
@@ -148,6 +151,9 @@
                 <div class="card-body">
                     @if (Model?.TicketsByPriority?.Any() == true)
                     {
+                        <div class="chart-container mb-3" style="position: relative; height: 250px;">
+                            <canvas id="priorityChart"></canvas>
+                        </div>
                         <table class="table table-sm">
                             <thead>
                                 <tr>
@@ -161,7 +167,7 @@
                                 {
                                     <tr>
                                         <td>
-                                            <span class="badge" style="background-color: @priority.Color">@priority.PriorityName</span>
+                                            <span class="badge text-dark border" style="background-color: @priority.Colour; text-shadow: 0 0 2px rgba(255,255,255,0.8);">@priority.PriorityName</span>
                                         </td>
                                         <td class="text-end">@priority.TicketCount</td>
                                         <td class="text-end">@priority.AvgResolutionHours.ToString("F1")</td>
@@ -265,8 +271,84 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
-        // Dashboard can be enhanced with Chart.js for visual charts
-        // This is a placeholder for future chart implementations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Status Chart - Doughnut
+            @if (Model?.TicketsByStatus?.Any() == true)
+            {
+                <text>
+                const statusCtx = document.getElementById('statusChart');
+                if (statusCtx) {
+                    new Chart(statusCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: [@Html.Raw(string.Join(", ", Model.TicketsByStatus.Select(s => $"'{s.StatusName}'")))],
+                            datasets: [{
+                                data: [@string.Join(", ", Model.TicketsByStatus.Select(s => s.TicketCount))],
+                                backgroundColor: [@Html.Raw(string.Join(", ", Model.TicketsByStatus.Select(s => $"'{s.Colour}'")))],
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 15,
+                                        usePointStyle: true
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                </text>
+            }
+
+            // Priority Chart - Horizontal Bar
+            @if (Model?.TicketsByPriority?.Any() == true)
+            {
+                <text>
+                const priorityCtx = document.getElementById('priorityChart');
+                if (priorityCtx) {
+                    new Chart(priorityCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [@Html.Raw(string.Join(", ", Model.TicketsByPriority.Select(p => $"'{p.PriorityName}'")))],
+                            datasets: [{
+                                label: 'Tickets',
+                                data: [@string.Join(", ", Model.TicketsByPriority.Select(p => p.TicketCount))],
+                                backgroundColor: [@Html.Raw(string.Join(", ", Model.TicketsByPriority.Select(p => $"'{p.Colour}'")))],
+                                borderWidth: 1,
+                                borderColor: 'rgba(0,0,0,0.1)'
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                </text>
+            }
+        });
     </script>
 }

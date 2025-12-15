@@ -13,6 +13,7 @@ public interface ILookupService
     Task<List<CategoryLookupDto>> GetCategoriesAsync();
     Task<List<LookupItemDto>> GetTeamsAsync();
     Task<List<AgentLookupDto>> GetAgentsAsync();
+    Task<List<LookupItemDto>> GetRolesAsync();
     Task<TicketFormLookupsDto> GetAllLookupsAsync();
 }
 
@@ -53,6 +54,11 @@ public class LookupService : ILookupService
     public async Task<List<AgentLookupDto>> GetAgentsAsync()
     {
         return await _lookupRepository.GetAgentsAsync();
+    }
+
+    public async Task<List<LookupItemDto>> GetRolesAsync()
+    {
+        return await _lookupRepository.GetRolesAsync();
     }
 
     public async Task<TicketFormLookupsDto> GetAllLookupsAsync()

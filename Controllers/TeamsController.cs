@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingASP.Models.DTOs;
@@ -54,6 +55,10 @@ public class TeamsController : Controller
 
         var members = await _teamService.GetMembersAsync(id);
         ViewBag.Members = members;
+
+        // Get users for Add Member dropdown
+        var users = await _userService.GetUsersAsync(1, 100, null, true);
+        ViewBag.Users = users.Items;
 
         return View(team);
     }
@@ -234,8 +239,15 @@ public class TeamsController : Controller
 
     private int GetCurrentUserId()
     {
-        // TODO: Implement proper authentication
-        return 1;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
+            _logger.LogWarning("Unable to retrieve current user ID from claims");
+            throw new UnauthorizedAccessException("User is not authenticated or user ID claim is missing.");
+        }
+        
+        return userId;
     }
 
     #endregion

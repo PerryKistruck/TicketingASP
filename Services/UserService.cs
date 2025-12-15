@@ -47,8 +47,9 @@ public class UserService : IUserService
 
         if (result.Success && result.Data > 0)
         {
-            // Assign default "User" role (roleId = 4)
-            await _userRepository.AssignRoleAsync(result.Data, 4, createdBy ?? result.Data);
+            // Use provided RoleId or default to "User" role (roleId = 4)
+            var roleId = dto.RoleId ?? 4;
+            await _userRepository.AssignRoleAsync(result.Data, roleId, createdBy ?? result.Data);
         }
 
         return result;

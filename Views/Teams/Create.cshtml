@@ -1,0 +1,76 @@
+@model TicketingASP.Models.DTOs.CreateTeamDto
+@{
+    ViewData["Title"] = "Create Team";
+    var users = ViewBag.Users as List<TicketingASP.Models.DTOs.UserListDto>;
+}
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Teams</a></li>
+            <li class="breadcrumb-item active">Create</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header" style="background-color: var(--primary); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Create New Team</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Team Name <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter team name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter team description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ManagerId" class="form-label">Team Manager</label>
+                            <select asp-for="ManagerId" class="form-select">
+                                <option value="">-- Select Manager --</option>
+                                @if (users != null)
+                                {
+                                    @foreach (var user in users)
+                                    {
+                                        <option value="@user.Id">@user.DisplayName (@user.Email)</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="ManagerId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label">Team Email</label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="team@example.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                            <div class="form-text">Optional email address for team communications</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Create Team
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

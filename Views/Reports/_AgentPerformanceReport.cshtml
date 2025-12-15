@@ -1,0 +1,112 @@
+@model List<TicketingASP.Models.DTOs.AgentPerformanceDto>
+
+<div class="row">
+    <!-- Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Top Performing Agents</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 350px;">
+                    <canvas id="agentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-award me-2"></i>Leaderboard</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model?.Any() == true)
+                {
+                    var topAgents = Model.OrderByDescending(a => a.ResolvedCount).Take(5).ToList();
+                    <ul class="list-group list-group-flush">
+                        @for (int i = 0; i < topAgents.Count; i++)
+                        {
+                            var agent = topAgents[i];
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge rounded-pill @(i == 0 ? "bg-warning text-dark" : i == 1 ? "bg-secondary" : i == 2 ? "bg-dark" : "bg-light text-dark") me-2">
+                                        @(i + 1)
+                                    </span>
+                                    <strong>@agent.UserName</strong>
+                                    @if (!string.IsNullOrEmpty(agent.TeamName))
+                                    {
+                                        <br /><small class="text-muted">@agent.TeamName</small>
+                                    }
+                                </div>
+                                <span class="badge bg-success rounded-pill">@agent.ResolvedCount resolved</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <p>No agent data available.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Agent Performance Details</h5>
+    </div>
+    <div class="card-body">
+        @if (Model?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Agent</th>
+                            <th>Team</th>
+                            <th class="text-end">Total Assigned</th>
+                            <th class="text-end">Resolved</th>
+                            <th class="text-end">Open</th>
+                            <th class="text-end">Resolution Rate</th>
+                            <th class="text-end">Avg Resolution (hrs)</th>
+                            <th class="text-end">Avg First Response (hrs)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var agent in Model.OrderByDescending(a => a.ResolvedCount))
+                        {
+                            var resolutionRate = agent.TotalAssigned > 0 ? (decimal)agent.ResolvedCount / agent.TotalAssigned * 100 : 0;
+                            <tr>
+                                <td><strong>@agent.UserName</strong></td>
+                                <td>@(agent.TeamName ?? "<span class=\"text-muted\">Unassigned</span>")</td>
+                                <td class="text-end">@agent.TotalAssigned</td>
+                                <td class="text-end text-success">@agent.ResolvedCount</td>
+                                <td class="text-end text-warning">@agent.OpenCount</td>
+                                <td class="text-end">
+                                    <span class="badge @(resolutionRate >= 80 ? "bg-success" : resolutionRate >= 50 ? "bg-warning" : "bg-danger")">
+                                        @resolutionRate.ToString("F1")%
+                                    </span>
+                                </td>
+                                <td class="text-end">@(agent.AvgResolutionHours?.ToString("F1") ?? "N/A")</td>
+                                <td class="text-end">@(agent.AvgFirstResponseHours?.ToString("F1") ?? "N/A")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">No agent performance data available for the selected period.</p>
+            </div>
+        }
+    </div>
+</div>

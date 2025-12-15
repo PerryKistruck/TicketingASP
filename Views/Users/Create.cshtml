@@ -1,0 +1,103 @@
+@model TicketingASP.Models.DTOs.RegisterUserDto
+@{
+    ViewData["Title"] = "Create Support Staff";
+    var roles = ViewBag.Roles as List<TicketingASP.Models.DTOs.LookupItemDto> ?? new List<TicketingASP.Models.DTOs.LookupItemDto>();
+}
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Users</a></li>
+            <li class="breadcrumb-item active">Create Support Staff</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header" style="background-color: var(--primary); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Create New Support Staff</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="RoleId" class="form-label">Role <span class="text-danger">*</span></label>
+                            <select asp-for="RoleId" class="form-select">
+                                <option value="">-- Select Role --</option>
+                                @foreach (var role in roles)
+                                {
+                                    <option value="@role.Id">@role.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="RoleId" class="text-danger"></span>
+                            <div class="form-text">
+                                <strong>Administrator:</strong> Full system access | 
+                                <strong>Manager:</strong> Team & reports access | 
+                                <strong>Agent:</strong> Ticket handling
+                            </div>
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="user@example.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label">Phone Number</label>
+                            <input asp-for="Phone" class="form-control" placeholder="+1 (555) 123-4567" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <input asp-for="Password" class="form-control" type="password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                            <div class="form-text">
+                                Password must be at least 8 characters with at least one letter, one number, and one special character.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Create Staff Member
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

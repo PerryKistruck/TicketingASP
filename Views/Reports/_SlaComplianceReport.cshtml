@@ -1,0 +1,128 @@
+@model List<TicketingASP.Models.DTOs.SlaComplianceDto>
+
+<div class="row">
+    <!-- Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>SLA Compliance Overview</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="slaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="col-lg-6 mb-4">
+        <div class="row">
+            @if (Model?.Any() == true)
+            {
+                var totalTickets = Model.Sum(s => s.TotalTickets);
+                var totalWithinResponse = Model.Sum(s => s.WithinSlaResponse);
+                var totalWithinResolution = Model.Sum(s => s.WithinSlaResolution);
+                var responseRate = totalTickets > 0 ? (decimal)totalWithinResponse / totalTickets * 100 : 0;
+                var resolutionRate = totalTickets > 0 ? (decimal)totalWithinResolution / totalTickets * 100 : 0;
+
+                <div class="col-6 mb-3">
+                    <div class="card border-primary h-100">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Response SLA</h6>
+                            <h2 class="@(responseRate >= 90 ? "text-success" : responseRate >= 70 ? "text-warning" : "text-danger")">
+                                @responseRate.ToString("F1")%
+                            </h2>
+                            <small class="text-muted">@totalWithinResponse / @totalTickets tickets</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="card border-primary h-100">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Resolution SLA</h6>
+                            <h2 class="@(resolutionRate >= 90 ? "text-success" : resolutionRate >= 70 ? "text-warning" : "text-danger")">
+                                @resolutionRate.ToString("F1")%
+                            </h2>
+                            <small class="text-muted">@totalWithinResolution / @totalTickets tickets</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="card border-danger h-100">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Response Breaches</h6>
+                            <h2 class="text-danger">@Model.Sum(s => s.BreachedSlaResponse)</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="card border-danger h-100">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Resolution Breaches</h6>
+                            <h2 class="text-danger">@Model.Sum(s => s.BreachedSlaResolution)</h2>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>SLA Compliance by Priority</h5>
+    </div>
+    <div class="card-body">
+        @if (Model?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Priority</th>
+                            <th class="text-end">Total Tickets</th>
+                            <th class="text-end">Response Within SLA</th>
+                            <th class="text-end">Response Breached</th>
+                            <th class="text-end">Response %</th>
+                            <th class="text-end">Resolution Within SLA</th>
+                            <th class="text-end">Resolution Breached</th>
+                            <th class="text-end">Resolution %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@item.PriorityName</strong></td>
+                                <td class="text-end">@item.TotalTickets</td>
+                                <td class="text-end text-success">@item.WithinSlaResponse</td>
+                                <td class="text-end text-danger">@item.BreachedSlaResponse</td>
+                                <td class="text-end">
+                                    <span class="badge @(item.ResponseCompliancePercent >= 90 ? "bg-success" : item.ResponseCompliancePercent >= 70 ? "bg-warning" : "bg-danger")">
+                                        @(item.ResponseCompliancePercent?.ToString("F1") ?? "0")%
+                                    </span>
+                                </td>
+                                <td class="text-end text-success">@item.WithinSlaResolution</td>
+                                <td class="text-end text-danger">@item.BreachedSlaResolution</td>
+                                <td class="text-end">
+                                    <span class="badge @(item.ResolutionCompliancePercent >= 90 ? "bg-success" : item.ResolutionCompliancePercent >= 70 ? "bg-warning" : "bg-danger")">
+                                        @(item.ResolutionCompliancePercent?.ToString("F1") ?? "0")%
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">No SLA data available for the selected period.</p>
+            </div>
+        }
+    </div>
+</div>

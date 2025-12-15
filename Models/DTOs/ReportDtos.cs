@@ -37,7 +37,7 @@ public class TicketsByStatusDto
 {
     public int StatusId { get; set; }
     public string StatusName { get; set; } = string.Empty;
-    public string Color { get; set; } = string.Empty;
+    public string Colour { get; set; } = string.Empty;
     public long TicketCount { get; set; }
     public decimal Percentage { get; set; }
 }
@@ -49,7 +49,7 @@ public class TicketsByPriorityDto
 {
     public int PriorityId { get; set; }
     public string PriorityName { get; set; } = string.Empty;
-    public string Color { get; set; } = string.Empty;
+    public string Colour { get; set; } = string.Empty;
     public long TicketCount { get; set; }
     public long OpenCount { get; set; }
     public decimal AvgResolutionHours { get; set; }
@@ -141,6 +141,19 @@ public class ReportFilterDto
     public DateTime? DateTo { get; set; }
     public int? TeamId { get; set; }
     public string? Period { get; set; } = "daily"; // daily, weekly, monthly
+}
+
+/// <summary>
+/// ViewModel for unified reports page
+/// </summary>
+public class UnifiedReportsViewModel
+{
+    public string ActiveTab { get; set; } = "sla";
+    public ReportFilterDto Filter { get; set; } = new();
+    public List<LookupItemDto> Teams { get; set; } = new();
+    public List<SlaComplianceDto> SlaCompliance { get; set; } = new();
+    public List<TeamPerformanceDto> TeamPerformance { get; set; } = new();
+    public List<AgentPerformanceDto> AgentPerformance { get; set; } = new();
 }
 
 #endregion

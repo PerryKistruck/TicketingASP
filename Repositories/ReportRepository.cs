@@ -60,7 +60,7 @@ public class ReportRepository : IReportRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var result = await connection.QueryAsync<TicketsByStatusDto>(
-                @"SELECT status_id AS StatusId, status_name AS StatusName, status_color AS StatusColor,
+                @"SELECT status_id AS StatusId, status_name AS StatusName, status_color AS Colour,
                          ticket_count AS TicketCount, percentage AS Percentage
                   FROM sp_report_tickets_by_status(@p_date_from, @p_date_to)",
                 new { p_date_from = dateFrom, p_date_to = dateTo });
@@ -81,7 +81,7 @@ public class ReportRepository : IReportRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var result = await connection.QueryAsync<TicketsByPriorityDto>(
-                @"SELECT priority_id AS PriorityId, priority_name AS PriorityName, priority_color AS PriorityColor,
+                @"SELECT priority_id AS PriorityId, priority_name AS PriorityName, priority_color AS Colour,
                          ticket_count AS TicketCount, open_count AS OpenCount, avg_resolution_hours AS AvgResolutionHours
                   FROM sp_report_tickets_by_priority(@p_date_from, @p_date_to)",
                 new { p_date_from = dateFrom, p_date_to = dateTo });

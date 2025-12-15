@@ -184,8 +184,7 @@ public class UserRepository : IUserRepository
                 });
 
             var userList = users.ToList();
-            var totalCount = userList.FirstOrDefault() != null ? 
-                (long)(userList.First().GetType().GetProperty("TotalCount")?.GetValue(userList.First()) ?? 0) : 0;
+            var totalCount = userList.FirstOrDefault()?.TotalCount ?? 0;
 
             return new PagedResult<UserListDto>
             {

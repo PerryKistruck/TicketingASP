@@ -57,10 +57,10 @@ public class TicketListDto
     public string Title { get; set; } = string.Empty;
     public int PriorityId { get; set; }
     public string PriorityName { get; set; } = string.Empty;
-    public string PriorityColor { get; set; } = string.Empty;
+    public string PriorityColour { get; set; } = string.Empty;
     public int StatusId { get; set; }
     public string StatusName { get; set; } = string.Empty;
-    public string StatusColor { get; set; } = string.Empty;
+    public string StatusColour { get; set; } = string.Empty;
     public int? CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public string RequesterName { get; set; } = string.Empty;
@@ -87,10 +87,10 @@ public class TicketDetailDto
     public string? CategoryName { get; set; }
     public int PriorityId { get; set; }
     public string PriorityName { get; set; } = string.Empty;
-    public string PriorityColor { get; set; } = string.Empty;
+    public string PriorityColour { get; set; } = string.Empty;
     public int StatusId { get; set; }
     public string StatusName { get; set; } = string.Empty;
-    public string StatusColor { get; set; } = string.Empty;
+    public string StatusColour { get; set; } = string.Empty;
     public int RequesterId { get; set; }
     public string RequesterName { get; set; } = string.Empty;
     public string RequesterEmail { get; set; } = string.Empty;

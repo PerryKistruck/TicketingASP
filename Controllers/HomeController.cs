@@ -25,7 +25,7 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
-    public IActionResult Privacy()
+    public IActionResult About()
     {
         return View();
     }

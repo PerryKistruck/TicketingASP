@@ -168,8 +168,8 @@ public class TicketRepository : ITicketRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var tickets = await connection.QueryAsync<TicketListDto>(
-                @"SELECT id, ticket_number AS TicketNumber, title, priority_name AS PriorityName, priority_color AS PriorityColor,
-                         status_name AS StatusName, status_color AS StatusColor, requester_name AS RequesterName,
+                @"SELECT id, ticket_number AS TicketNumber, title, priority_name AS PriorityName, priority_color AS PriorityColour,
+                         status_name AS StatusName, status_color AS StatusColour, requester_name AS RequesterName,
                          assigned_to_name AS AssignedToName, team_name AS TeamName, created_at AS CreatedAt, updated_at AS UpdatedAt,
                          total_count AS TotalCount
                   FROM sp_ticket_list(@p_page_number, @p_page_size, @p_search, @p_status_id, @p_priority_id, @p_category_id,
@@ -271,8 +271,8 @@ public class TicketRepository : ITicketRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var history = await connection.QueryAsync<TicketHistoryDto>(
-                @"SELECT id, user_id AS UserId, user_name AS UserName, action, field_name AS FieldName,
-                         old_value AS OldValue, new_value AS NewValue, description, created_at AS CreatedAt
+                @"SELECT id, user_id AS UserId, user_name AS ChangedByName, action, field_name AS FieldName,
+                         old_value AS OldValue, new_value AS NewValue, description, created_at AS ChangedAt
                   FROM sp_ticket_get_history(@p_ticket_id)",
                 new { p_ticket_id = ticketId });
 

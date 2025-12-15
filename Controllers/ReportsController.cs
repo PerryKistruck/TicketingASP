@@ -7,9 +7,10 @@ using System.Security.Claims;
 namespace TicketingASP.Controllers;
 
 /// <summary>
-/// Controller for reports and dashboard - restricted to Managers and Administrators
+/// Controller for reports and dashboard
+/// Dashboard is accessible to Agents and above, Reports are restricted to Managers and Administrators
 /// </summary>
-[Authorize(Policy = "ManagerOrAdmin")]
+[Authorize]
 public class ReportsController : Controller
 {
     private readonly IReportService _reportService;
@@ -27,9 +28,10 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Display main dashboard
+    /// Display main dashboard - accessible to Agents and above
     /// </summary>
     [HttpGet]
+    [Authorize(Policy = "AgentOrAbove")]
     public async Task<IActionResult> Dashboard()
     {
         var userId = GetCurrentUserId();
@@ -41,61 +43,31 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Display tickets by status report
+    /// Display unified reports page with tabs - accessible to Managers and Administrators only
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> TicketsByStatus([FromQuery] ReportFilterDto filter)
+    [Authorize(Policy = "ManagerOrAdmin")]
+    public async Task<IActionResult> Index([FromQuery] ReportFilterDto? filter, string? tab = "sla")
     {
-        var report = await _reportService.GetTicketsByStatusAsync(filter);
-        ViewBag.Filter = filter;
-        return View(report);
-    }
+        filter ??= new ReportFilterDto
+        {
+            DateFrom = DateTime.UtcNow.AddDays(-30),
+            DateTo = DateTime.UtcNow
+        };
 
-    /// <summary>
-    /// Display tickets by priority report
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> TicketsByPriority([FromQuery] ReportFilterDto filter)
-    {
-        var report = await _reportService.GetTicketsByPriorityAsync(filter);
-        ViewBag.Filter = filter;
-        return View(report);
-    }
+        var viewModel = new UnifiedReportsViewModel
+        {
+            ActiveTab = tab ?? "sla",
+            Filter = filter,
+            Teams = await _lookupService.GetTeamsAsync()
+        };
 
-    /// <summary>
-    /// Display tickets by category report
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> TicketsByCategory([FromQuery] ReportFilterDto filter)
-    {
-        var report = await _reportService.GetTicketsByCategoryAsync(filter);
-        ViewBag.Filter = filter;
-        return View(report);
-    }
+        // Load data based on active tab (or load all for initial render)
+        viewModel.SlaCompliance = await _reportService.GetSlaComplianceAsync(filter);
+        viewModel.TeamPerformance = await _reportService.GetTeamPerformanceAsync(filter);
+        viewModel.AgentPerformance = await _reportService.GetAgentPerformanceAsync(filter);
 
-    /// <summary>
-    /// Display team performance report
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> TeamPerformance([FromQuery] ReportFilterDto filter)
-    {
-        var report = await _reportService.GetTeamPerformanceAsync(filter);
-        ViewBag.Filter = filter;
-        return View(report);
-    }
-
-    /// <summary>
-    /// Display agent performance report
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> AgentPerformance([FromQuery] ReportFilterDto filter)
-    {
-        var teams = await _lookupService.GetTeamsAsync();
-        ViewBag.Teams = teams;
-        
-        var report = await _reportService.GetAgentPerformanceAsync(filter);
-        ViewBag.Filter = filter;
-        return View(report);
+        return View(viewModel);
     }
 
     /// <summary>

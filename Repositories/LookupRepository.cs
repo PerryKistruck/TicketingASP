@@ -14,6 +14,7 @@ public interface ILookupRepository
     Task<List<CategoryLookupDto>> GetCategoriesAsync();
     Task<List<LookupItemDto>> GetTeamsAsync();
     Task<List<AgentLookupDto>> GetAgentsAsync();
+    Task<List<LookupItemDto>> GetRolesAsync();
 }
 
 /// <summary>
@@ -138,6 +139,26 @@ public class LookupRepository : ILookupRepository
         {
             _logger.LogError(ex, "Error getting agents lookup: {Message}", ex.Message);
             return new List<AgentLookupDto>();
+        }
+    }
+
+    public async Task<List<LookupItemDto>> GetRolesAsync()
+    {
+        try
+        {
+            await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            
+            // Get support staff roles only (Admin=1, Manager=2, Agent=3), excluding User role
+            var result = await connection.QueryAsync<LookupItemDto>(
+                "SELECT id AS Id, name AS Name FROM roles WHERE is_active = true AND id IN (1, 2, 3) ORDER BY id");
+
+            _logger.LogDebug("Loaded {Count} roles", result.Count());
+            return result.ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting roles lookup: {Message}", ex.Message);
+            return new List<LookupItemDto>();
         }
     }
 }

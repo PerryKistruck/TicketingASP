@@ -152,8 +152,7 @@ public class TeamRepository : ITeamRepository
                 });
 
             var teamList = teams.ToList();
-            var totalCount = teamList.FirstOrDefault() != null ? 
-                (long)(teamList.First().GetType().GetProperty("TotalCount")?.GetValue(teamList.First()) ?? 0) : 0;
+            var totalCount = teamList.FirstOrDefault()?.TotalCount ?? 0;
 
             return new PagedResult<TeamDto>
             {

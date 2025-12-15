@@ -1,5 +1,5 @@
 /**
- * TicketingASP - Core JavaScript Library
+ * IGD Support - Core JavaScript Library
  * Shared utilities and components
  */
 
@@ -318,7 +318,7 @@ const App = (function () {
         initNavigation();
         initFormValidation();
         
-        console.log('TicketingASP initialized');
+        console.log('IGD Support initialized');
     }
 
     // Initialize when DOM is ready

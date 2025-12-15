@@ -1,0 +1,130 @@
+@model List<TicketingASP.Models.DTOs.TeamPerformanceDto>
+
+<div class="row">
+    <!-- Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Team Ticket Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 350px;">
+                    <canvas id="teamChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Summary</h5>
+            </div>
+            <div class="card-body">
+                @if (Model?.Any() == true)
+                {
+                    var totalAssigned = Model.Sum(t => t.AssignedTickets);
+                    var totalResolved = Model.Sum(t => t.ResolvedTickets);
+                    var totalOverdue = Model.Sum(t => t.OverdueTickets);
+                    var avgResolution = Model.Where(t => t.AvgResolutionHours > 0).Average(t => (double?)t.AvgResolutionHours) ?? 0;
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Total Assigned</span>
+                            <strong>@totalAssigned</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Total Resolved</span>
+                            <strong class="text-success">@totalResolved</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Total Overdue</span>
+                            <strong class="text-danger">@totalOverdue</strong>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Avg Resolution Time</span>
+                            <strong>@avgResolution.ToString("F1") hrs</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Resolution Rate</span>
+                            <strong class="@(totalAssigned > 0 && (double)totalResolved/totalAssigned >= 0.8 ? "text-success" : "text-warning")">
+                                @(totalAssigned > 0 ? ((double)totalResolved / totalAssigned * 100).ToString("F1") : "0")%
+                            </strong>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Team Performance Details</h5>
+    </div>
+    <div class="card-body">
+        @if (Model?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Team</th>
+                            <th class="text-end">Assigned</th>
+                            <th class="text-end">Resolved</th>
+                            <th class="text-end">Open</th>
+                            <th class="text-end">Overdue</th>
+                            <th class="text-end">Avg Resolution (hrs)</th>
+                            <th class="text-end">Avg Response (hrs)</th>
+                            <th class="text-end">SLA Compliance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var team in Model.OrderByDescending(t => t.ResolvedTickets))
+                        {
+                            <tr>
+                                <td><strong>@team.TeamName</strong></td>
+                                <td class="text-end">@team.AssignedTickets</td>
+                                <td class="text-end text-success">@team.ResolvedTickets</td>
+                                <td class="text-end text-warning">@team.OpenTickets</td>
+                                <td class="text-end text-danger">@team.OverdueTickets</td>
+                                <td class="text-end">@team.AvgResolutionHours.ToString("F1")</td>
+                                <td class="text-end">@team.AvgResponseHours.ToString("F1")</td>
+                                <td class="text-end">
+                                    @if (team.SlaCompliancePercent.HasValue)
+                                    {
+                                        <span class="badge @(team.SlaCompliancePercent >= 90 ? "bg-success" : team.SlaCompliancePercent >= 70 ? "bg-warning" : "bg-danger")">
+                                            @team.SlaCompliancePercent.Value.ToString("F1")%
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">No team performance data available for the selected period.</p>
+            </div>
+        }
+    </div>
+</div>

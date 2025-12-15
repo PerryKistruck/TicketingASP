@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingASP.Models.DTOs;
@@ -12,11 +13,13 @@ namespace TicketingASP.Controllers;
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
+    private readonly ILookupService _lookupService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    public UsersController(IUserService userService, ILookupService lookupService, ILogger<UsersController> logger)
     {
         _userService = userService;
+        _lookupService = lookupService;
         _logger = logger;
     }
 
@@ -51,16 +54,17 @@ public class UsersController : Controller
     }
 
     /// <summary>
-    /// Display registration form
+    /// Display registration form for new support staff
     /// </summary>
     [HttpGet]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
+        ViewBag.Roles = await _lookupService.GetRolesAsync();
         return View(new RegisterUserDto());
     }
 
     /// <summary>
-    /// Register a new user
+    /// Register a new support staff user
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -68,6 +72,7 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid)
         {
+            ViewBag.Roles = await _lookupService.GetRolesAsync();
             return View(dto);
         }
 
@@ -76,6 +81,7 @@ public class UsersController : Controller
 
         if (!result.Success)
         {
+            ViewBag.Roles = await _lookupService.GetRolesAsync();
             ModelState.AddModelError(string.Empty, result.Message);
             return View(dto);
         }
@@ -186,8 +192,15 @@ public class UsersController : Controller
 
     private int GetCurrentUserId()
     {
-        // TODO: Implement proper authentication
-        return 1;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
+            _logger.LogWarning("Unable to retrieve current user ID from claims");
+            throw new UnauthorizedAccessException("User is not authenticated or user ID claim is missing.");
+        }
+        
+        return userId;
     }
 
     #endregion

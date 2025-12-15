@@ -1,0 +1,82 @@
+@model TicketingASP.Models.DTOs.UpdateTeamDto
+@{
+    ViewData["Title"] = "Edit Team";
+    var users = ViewBag.Users as List<TicketingASP.Models.DTOs.UserListDto> ?? new List<TicketingASP.Models.DTOs.UserListDto>();
+    var teamId = ViewBag.TeamId;
+}
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Teams</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@teamId">Details</a></li>
+            <li class="breadcrumb-item active">Edit</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header" style="background-color: var(--primary); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Team</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" asp-route-id="@teamId" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Team Name</label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter team name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter team description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ManagerId" class="form-label">Team Manager</label>
+                            <select asp-for="ManagerId" class="form-select">
+                                <option value="">-- No Manager --</option>
+                                @foreach (var user in users)
+                                {
+                                    <option value="@user.Id">@user.DisplayName (@user.Email)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="ManagerId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Team Email</label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="team@example.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="IsActive" id="IsActive" class="form-check-input" 
+                                       value="true" @(Model.IsActive == true ? "checked" : "") />
+                                <label for="IsActive" class="form-check-label">Active</label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Save Changes
+                            </button>
+                            <a asp-action="Details" asp-route-id="@teamId" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

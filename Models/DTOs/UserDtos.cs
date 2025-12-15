@@ -35,6 +35,11 @@ public class RegisterUserDto
     [Phone(ErrorMessage = "Invalid phone number format")]
     [StringLength(20, ErrorMessage = "Phone cannot exceed 20 characters")]
     public string? Phone { get; set; }
+
+    /// <summary>
+    /// Role ID for admin-created users. If null, defaults to User role.
+    /// </summary>
+    public int? RoleId { get; set; }
 }
 
 /// <summary>
@@ -107,6 +112,11 @@ public class UserListDto
     public bool IsLocked { get; set; }
     public DateTime CreatedAt { get; set; }
     public string Roles { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Total count for pagination (populated by stored procedure)
+    /// </summary>
+    public int TotalCount { get; set; }
 }
 
 /// <summary>
@@ -195,6 +205,11 @@ public class TeamDto
     public int MemberCount { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// Total count for pagination (populated by stored procedure)
+    /// </summary>
+    public int TotalCount { get; set; }
 }
 
 /// <summary>

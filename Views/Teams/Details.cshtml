@@ -3,6 +3,10 @@
 @{
     ViewData["Title"] = Model.Name;
     var members = ViewBag.Members as List<TeamMemberDto> ?? new List<TeamMemberDto>();
+    var users = ViewBag.Users as List<UserListDto> ?? new List<UserListDto>();
+    // Filter out users who are already members
+    var memberUserIds = members.Select(m => m.UserId).ToHashSet();
+    var availableUsers = users.Where(u => !memberUserIds.Contains(u.Id)).ToList();
 }
 
 <div class="container-fluid">
@@ -100,7 +104,7 @@
                                     @foreach (var member in members)
                                     {
                                         <tr>
-                                            <td>@member.UserName</td>
+                                            <td>@member.DisplayName</td>
                                             <td>@member.Email</td>
                                             <td>
                                                 @if (member.IsTeamLead)
@@ -150,7 +154,10 @@
                         <label for="userId" class="form-label">User</label>
                         <select class="form-select" name="userId" id="userId" required>
                             <option value="">Select a user...</option>
-                            <!-- This should be populated dynamically -->
+                            @foreach (var user in availableUsers)
+                            {
+                                <option value="@user.Id">@user.DisplayName (@user.Email)</option>
+                            }
                         </select>
                     </div>
                     <div class="form-check">

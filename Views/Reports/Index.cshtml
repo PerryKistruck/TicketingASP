@@ -1,0 +1,247 @@
+@model TicketingASP.Models.DTOs.UnifiedReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3"><i class="bi bi-graph-up me-2"></i>Reports</h1>
+            <p class="text-muted">Analyze performance metrics and SLA compliance</p>
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <input type="hidden" name="tab" value="@Model.ActiveTab" id="activeTabInput" />
+                <div class="col-md-3">
+                    <label class="form-label">From Date</label>
+                    <input type="date" name="DateFrom" class="form-control" 
+                           value="@(Model.Filter.DateFrom?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">To Date</label>
+                    <input type="date" name="DateTo" class="form-control" 
+                           value="@(Model.Filter.DateTo?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Team</label>
+                    <select name="TeamId" class="form-select">
+                        <option value="">All Teams</option>
+                        @foreach (var team in Model.Teams)
+                        {
+                            <option value="@team.Id" selected="@(Model.Filter.TeamId == team.Id)">@team.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Apply Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(Model.ActiveTab == "sla" ? "active" : "")" id="sla-tab" 
+                    data-bs-toggle="tab" data-bs-target="#sla-content" type="button" role="tab"
+                    onclick="updateActiveTab('sla')">
+                <i class="bi bi-clock-history me-1"></i>SLA Compliance
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(Model.ActiveTab == "team" ? "active" : "")" id="team-tab" 
+                    data-bs-toggle="tab" data-bs-target="#team-content" type="button" role="tab"
+                    onclick="updateActiveTab('team')">
+                <i class="bi bi-people me-1"></i>Team Performance
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(Model.ActiveTab == "agent" ? "active" : "")" id="agent-tab" 
+                    data-bs-toggle="tab" data-bs-target="#agent-content" type="button" role="tab"
+                    onclick="updateActiveTab('agent')">
+                <i class="bi bi-person-badge me-1"></i>Agent Performance
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="reportTabsContent">
+        <!-- SLA Compliance Tab -->
+        <div class="tab-pane fade @(Model.ActiveTab == "sla" ? "show active" : "")" id="sla-content" role="tabpanel">
+            <partial name="_SlaComplianceReport" model="Model.SlaCompliance" />
+        </div>
+
+        <!-- Team Performance Tab -->
+        <div class="tab-pane fade @(Model.ActiveTab == "team" ? "show active" : "")" id="team-content" role="tabpanel">
+            <partial name="_TeamPerformanceReport" model="Model.TeamPerformance" />
+        </div>
+
+        <!-- Agent Performance Tab -->
+        <div class="tab-pane fade @(Model.ActiveTab == "agent" ? "show active" : "")" id="agent-content" role="tabpanel">
+            <partial name="_AgentPerformanceReport" model="Model.AgentPerformance" />
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        function updateActiveTab(tabName) {
+            document.getElementById('activeTabInput').value = tabName;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts after DOM is ready
+            initializeSlaChart();
+            initializeTeamChart();
+            initializeAgentChart();
+        });
+
+        function initializeSlaChart() {
+            const ctx = document.getElementById('slaChart');
+            if (!ctx) return;
+
+            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SlaCompliance));
+            if (!data || data.length === 0) return;
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.priorityName),
+                    datasets: [
+                        {
+                            label: 'Response Compliance %',
+                            data: data.map(d => d.responseCompliancePercent || 0),
+                            backgroundColor: 'rgba(0, 86, 91, 0.7)',
+                            borderColor: 'rgba(0, 86, 91, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Resolution Compliance %',
+                            data: data.map(d => d.resolutionCompliancePercent || 0),
+                            backgroundColor: 'rgba(232, 93, 4, 0.7)',
+                            borderColor: 'rgba(232, 93, 4, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Compliance %' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'SLA Compliance by Priority' }
+                    }
+                }
+            });
+        }
+
+        function initializeTeamChart() {
+            const ctx = document.getElementById('teamChart');
+            if (!ctx) return;
+
+            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TeamPerformance));
+            if (!data || data.length === 0) return;
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.teamName),
+                    datasets: [
+                        {
+                            label: 'Resolved',
+                            data: data.map(d => d.resolvedTickets),
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Open',
+                            data: data.map(d => d.openTickets),
+                            backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Overdue',
+                            data: data.map(d => d.overdueTickets),
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Ticket Count' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Team Ticket Distribution' }
+                    }
+                }
+            });
+        }
+
+        function initializeAgentChart() {
+            const ctx = document.getElementById('agentChart');
+            if (!ctx) return;
+
+            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AgentPerformance));
+            if (!data || data.length === 0) return;
+
+            // Take top 10 agents by resolved count
+            const topAgents = data.sort((a, b) => b.resolvedCount - a.resolvedCount).slice(0, 10);
+
+            new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: topAgents.map(d => d.userName),
+                    datasets: [
+                        {
+                            label: 'Resolved Tickets',
+                            data: topAgents.map(d => d.resolvedCount),
+                            backgroundColor: 'rgba(0, 86, 91, 0.7)',
+                            borderColor: 'rgba(0, 86, 91, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Tickets Resolved' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Top Performing Agents' }
+                    }
+                }
+            });
+        }
+    </script>
+}
