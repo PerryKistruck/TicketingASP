@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingASP.Models.DTOs;
 using TicketingASP.Services;
@@ -5,8 +6,9 @@ using TicketingASP.Services;
 namespace TicketingASP.Controllers;
 
 /// <summary>
-/// Controller for user management operations
+/// Controller for user management operations - restricted to Administrators
 /// </summary>
+[Authorize(Policy = "AdminOnly")]
 public class UsersController : Controller
 {
     private readonly IUserService _userService;

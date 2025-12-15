@@ -71,6 +71,7 @@ public class TicketListDto
     public DateTime? DueDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public long TotalCount { get; set; }  // Used for pagination - returned from stored procedure
 }
 
 /// <summary>
@@ -178,6 +179,7 @@ public class TicketFilterDto
     public int? AssignedToId { get; set; }
     public int? AssignedTeamId { get; set; }
     public int? RequesterId { get; set; }
+    public int? CreatedById { get; set; }
     public DateTime? DateFrom { get; set; }
     public DateTime? DateTo { get; set; }
     public bool IncludeClosed { get; set; } = false;

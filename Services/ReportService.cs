@@ -28,6 +28,7 @@ public class DashboardReportDto
     public List<TicketsByStatusDto> TicketsByStatus { get; set; } = new();
     public List<TicketsByPriorityDto> TicketsByPriority { get; set; } = new();
     public List<TicketTrendDto> TicketTrend { get; set; } = new();
+    public List<TeamPerformanceDto> TeamPerformance { get; set; } = new();
 }
 
 /// <summary>
@@ -92,15 +93,17 @@ public class ReportService : IReportService
         var statusTask = GetTicketsByStatusAsync();
         var priorityTask = GetTicketsByPriorityAsync();
         var trendTask = GetTicketTrendAsync(new ReportFilterDto { Period = "daily" });
+        var teamTask = GetTeamPerformanceAsync();
 
-        await Task.WhenAll(summaryTask, statusTask, priorityTask, trendTask);
+        await Task.WhenAll(summaryTask, statusTask, priorityTask, trendTask, teamTask);
 
         return new DashboardReportDto
         {
             Summary = await summaryTask,
             TicketsByStatus = await statusTask,
             TicketsByPriority = await priorityTask,
-            TicketTrend = await trendTask
+            TicketTrend = await trendTask,
+            TeamPerformance = await teamTask
         };
     }
 }

@@ -17,18 +17,6 @@ public interface ILookupService
 }
 
 /// <summary>
-/// Combined lookups for ticket form
-/// </summary>
-public class TicketFormLookupsDto
-{
-    public List<LookupItemDto> Priorities { get; set; } = new();
-    public List<LookupItemDto> Statuses { get; set; } = new();
-    public List<CategoryLookupDto> Categories { get; set; } = new();
-    public List<LookupItemDto> Teams { get; set; } = new();
-    public List<AgentLookupDto> Agents { get; set; } = new();
-}
-
-/// <summary>
 /// Implementation of lookup service
 /// </summary>
 public class LookupService : ILookupService

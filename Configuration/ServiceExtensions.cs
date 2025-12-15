@@ -72,6 +72,11 @@ public static class ServiceExtensions
 
         services.AddAuthorization(options =>
         {
+            // Require authentication by default for all endpoints
+            options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+            
             options.AddPolicy("AdminOnly", policy => 
                 policy.RequireRole("Administrator"));
             options.AddPolicy("ManagerOrAdmin", policy => 

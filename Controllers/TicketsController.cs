@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingASP.Models.DTOs;
 using TicketingASP.Services;
+using System.Security.Claims;
 
 namespace TicketingASP.Controllers;
 
@@ -25,25 +27,33 @@ public class TicketsController : Controller
 
     /// <summary>
     /// Display ticket list with filtering
+    /// Users see only their tickets, Agents/Managers/Admins see all
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> Index([FromQuery] TicketFilterDto filter)
     {
-        // TODO: Get current user from authentication
         var userId = GetCurrentUserId();
         var userRole = GetCurrentUserRole();
+
+        // Regular users can only see their own tickets
+        if (userRole == "User")
+        {
+            filter.RequesterId = userId;
+        }
 
         var tickets = await _ticketService.GetTicketsAsync(filter, userId, userRole);
         var lookups = await _lookupService.GetAllLookupsAsync();
 
         ViewBag.Filter = filter;
         ViewBag.Lookups = lookups;
+        ViewBag.UserRole = userRole;
 
         return View(tickets);
     }
 
     /// <summary>
     /// Display ticket details
+    /// Users can only view their own tickets
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> Details(int id)
@@ -55,14 +65,23 @@ public class TicketsController : Controller
             return NotFound();
         }
 
+        // Regular users can only view their own tickets
+        var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
+        if (userRole == "User" && ticket.CreatedById != userId)
+        {
+            return Forbid();
+        }
+
         var lookups = await _lookupService.GetAllLookupsAsync();
         ViewBag.Lookups = lookups;
+        ViewBag.UserRole = userRole;
 
         return View(ticket);
     }
 
     /// <summary>
-    /// Display create ticket form
+    /// Display create ticket form - all authenticated users can create tickets
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> Create()
@@ -105,9 +124,10 @@ public class TicketsController : Controller
     }
 
     /// <summary>
-    /// Display edit ticket form
+    /// Display edit ticket form - only Agents, Managers, and Admins can edit
     /// </summary>
     [HttpGet]
+    [Authorize(Policy = "AgentOrAbove")]
     public async Task<IActionResult> Edit(int id)
     {
         var ticket = await _ticketService.GetTicketByIdAsync(id);
@@ -140,10 +160,11 @@ public class TicketsController : Controller
     }
 
     /// <summary>
-    /// Update a ticket
+    /// Update a ticket - only Agents, Managers, and Admins can update
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "AgentOrAbove")]
     public async Task<IActionResult> Edit(int id, UpdateTicketDto dto)
     {
         if (!ModelState.IsValid)
@@ -258,16 +279,17 @@ public class TicketsController : Controller
 
     private int GetCurrentUserId()
     {
-        // TODO: Implement proper authentication
-        // For now, return a test user ID
-        return 1;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
     private string GetCurrentUserRole()
     {
-        // TODO: Implement proper authentication
-        // For now, return Administrator role
-        return "Administrator";
+        // Return the highest role the user has
+        if (User.IsInRole("Administrator")) return "Administrator";
+        if (User.IsInRole("Manager")) return "Manager";
+        if (User.IsInRole("Agent")) return "Agent";
+        return "User";
     }
 
     private string? GetClientIpAddress()

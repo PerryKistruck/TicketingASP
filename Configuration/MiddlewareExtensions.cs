@@ -26,12 +26,13 @@ public static class MiddlewareExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        // Configure endpoints
+        // Configure endpoints - default to Home page
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Reports}/{action=Dashboard}/{id?}");
+            pattern: "{controller=Home}/{action=Index}/{id?}")
+            .RequireAuthorization();
         
-        app.MapRazorPages();
+        app.MapRazorPages().RequireAuthorization();
 
         return app;
     }

@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingASP.Models.DTOs;
 using TicketingASP.Services;
+using System.Security.Claims;
 
 namespace TicketingASP.Controllers;
 
 /// <summary>
-/// Controller for reports and dashboard
+/// Controller for reports and dashboard - restricted to Managers and Administrators
 /// </summary>
+[Authorize(Policy = "ManagerOrAdmin")]
 public class ReportsController : Controller
 {
     private readonly IReportService _reportService;
@@ -173,14 +176,16 @@ public class ReportsController : Controller
 
     private int GetCurrentUserId()
     {
-        // TODO: Implement proper authentication
-        return 1;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
     private string GetCurrentUserRole()
     {
-        // TODO: Implement proper authentication
-        return "Administrator";
+        if (User.IsInRole("Administrator")) return "Administrator";
+        if (User.IsInRole("Manager")) return "Manager";
+        if (User.IsInRole("Agent")) return "Agent";
+        return "User";
     }
 
     #endregion

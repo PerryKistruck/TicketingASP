@@ -60,8 +60,8 @@ public class UserRepository : IUserRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating user {Email}", dto.Email);
-            return OperationResult<int>.FailureResult("An error occurred while creating the user");
+            _logger.LogError(ex, "Error creating user {Email}: {Message}", dto.Email, ex.Message);
+            return OperationResult<int>.FailureResult($"Database error: {ex.Message}");
         }
     }
 

@@ -153,10 +153,28 @@
                         <dd class="col-sm-7">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</dd>
 
                         <dt class="col-sm-5">Assigned To</dt>
-                        <dd class="col-sm-7">@(Model.AssignedToName ?? "<em class=\"text-muted\">Unassigned</em>")</dd>
+                        <dd class="col-sm-7">
+                            @if (!string.IsNullOrEmpty(Model.AssignedToName))
+                            {
+                                @Model.AssignedToName
+                            }
+                            else
+                            {
+                                <em class="text-muted">Unassigned</em>
+                            }
+                        </dd>
 
                         <dt class="col-sm-5">Team</dt>
-                        <dd class="col-sm-7">@(Model.AssignedTeamName ?? "<em class=\"text-muted\">None</em>")</dd>
+                        <dd class="col-sm-7">
+                            @if (!string.IsNullOrEmpty(Model.AssignedTeamName))
+                            {
+                                @Model.AssignedTeamName
+                            }
+                            else
+                            {
+                                <em class="text-muted">None</em>
+                            }
+                        </dd>
 
                         <dt class="col-sm-5">Due Date</dt>
                         <dd class="col-sm-7">

@@ -71,3 +71,11 @@ ON CONFLICT (Name, ParentId) DO NOTHING;
 INSERT INTO Categories (Name, Description, ParentId)
 SELECT 'Access Request', 'System access requests', Id FROM Categories WHERE Name = 'Account' AND ParentId IS NULL
 ON CONFLICT (Name, ParentId) DO NOTHING;
+
+-- Insert Default Teams
+INSERT INTO Teams (Name, Description, Email, IsActive, CreatedBy) VALUES
+    ('IT Support', 'General IT support team', 'it-support@company.com', TRUE, 1),
+    ('Network Team', 'Network and infrastructure support', 'network@company.com', TRUE, 1),
+    ('Application Support', 'Business application support', 'app-support@company.com', TRUE, 1),
+    ('Help Desk', 'First-level support desk', 'helpdesk@company.com', TRUE, 1)
+ON CONFLICT DO NOTHING;

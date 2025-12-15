@@ -6,6 +6,8 @@
 -- =====================================================
 -- CREATE USER
 -- =====================================================
+DROP FUNCTION IF EXISTS sp_user_create(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, INT);
+
 CREATE OR REPLACE FUNCTION sp_user_create(
     p_email VARCHAR(255),
     p_password_hash VARCHAR(255),
@@ -17,7 +19,7 @@ CREATE OR REPLACE FUNCTION sp_user_create(
 )
 RETURNS TABLE(
     user_id INT,
-    email VARCHAR(255),
+    out_email VARCHAR(255),
     display_name VARCHAR(200),
     success BOOLEAN,
     message VARCHAR(255)
@@ -27,7 +29,7 @@ DECLARE
     v_display_name VARCHAR(200);
 BEGIN
     -- Check if email already exists
-    IF EXISTS (SELECT 1 FROM Users WHERE Email = p_email) THEN
+    IF EXISTS (SELECT 1 FROM Users WHERE Users.Email = p_email) THEN
         RETURN QUERY SELECT NULL::INT, p_email, NULL::VARCHAR(200), FALSE, 'Email already exists'::VARCHAR(255);
         RETURN;
     END IF;

@@ -1,6 +1,10 @@
+using Dapper;
 using TicketingASP.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Dapper to map snake_case database columns to PascalCase properties
+DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 // Configure services using extension methods for modularity
 builder.Services.AddApplicationServices(builder.Configuration);

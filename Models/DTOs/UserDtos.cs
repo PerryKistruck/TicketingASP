@@ -16,6 +16,8 @@ public class RegisterUserDto
 
     [Required(ErrorMessage = "Password is required")]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be between 8 and 100 characters")]
+    [RegularExpression(@"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$", 
+        ErrorMessage = "Password must be at least 8 characters and contain at least one letter, one number, and one special character")]
     public string Password { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Confirm password is required")]
@@ -82,6 +84,8 @@ public class ChangePasswordDto
 
     [Required(ErrorMessage = "New password is required")]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be between 8 and 100 characters")]
+    [RegularExpression(@"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$", 
+        ErrorMessage = "Password must be at least 8 characters and contain at least one letter, one number, and one special character")]
     public string NewPassword { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Confirm password is required")]

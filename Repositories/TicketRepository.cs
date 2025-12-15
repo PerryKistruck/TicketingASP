@@ -163,6 +163,8 @@ public class TicketRepository : ITicketRepository
     {
         try
         {
+            _logger.LogDebug("Getting ticket list for user {UserId} with role {UserRole}", userId, userRole);
+            
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var tickets = await connection.QueryAsync<TicketListDto>(
@@ -192,8 +194,10 @@ public class TicketRepository : ITicketRepository
                 });
 
             var ticketList = tickets.ToList();
-            var totalCount = ticketList.FirstOrDefault() != null ? 
-                (long)(ticketList.First().GetType().GetProperty("TotalCount")?.GetValue(ticketList.First()) ?? 0) : 0;
+            _logger.LogDebug("Query returned {Count} tickets", ticketList.Count);
+            
+            // TotalCount is included in each row from the stored procedure
+            var totalCount = ticketList.FirstOrDefault()?.TotalCount ?? 0;
 
             return new PagedResult<TicketListDto>
             {

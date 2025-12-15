@@ -1,0 +1,162 @@
+@model List<TicketingASP.Models.DTOs.TicketsByStatusDto>
+@{
+    ViewData["Title"] = "Tickets by Status";
+    var filter = ViewBag.Filter as TicketingASP.Models.DTOs.ReportFilterDto;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "Reports")">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Tickets by Status</li>
+                </ol>
+            </nav>
+            <h1 class="h3">Tickets by Status</h1>
+            <p class="text-muted">Distribution of tickets across different statuses</p>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">From Date</label>
+                            <input type="date" name="DateFrom" class="form-control" value="@filter?.DateFrom?.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">To Date</label>
+                            <input type="date" name="DateTo" class="form-control" value="@filter?.DateTo?.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">Apply Filter</button>
+                            <a href="@Url.Action("TicketsByStatus")" class="btn btn-outline-secondary">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model?.Any() == true)
+                    {
+                        <div class="d-flex flex-wrap justify-content-center gap-3">
+                            @foreach (var status in Model)
+                            {
+                                <div class="text-center p-3">
+                                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                         style="width: 80px; height: 80px; background-color: @(string.IsNullOrEmpty(status.Color) ? "#6c757d" : status.Color)20; border: 3px solid @(string.IsNullOrEmpty(status.Color) ? "#6c757d" : status.Color);">
+                                        <span class="h4 mb-0" style="color: @(string.IsNullOrEmpty(status.Color) ? "#6c757d" : status.Color);">@status.TicketCount</span>
+                                    </div>
+                                    <div class="fw-medium">@status.StatusName</div>
+                                    <small class="text-muted">@status.Percentage.ToString("F1")%</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Status Details</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th class="text-end">Count</th>
+                                        <th class="text-end">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var status in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge" style="background-color: @(string.IsNullOrEmpty(status.Color) ? "#6c757d" : status.Color);">
+                                                    @status.StatusName
+                                                </span>
+                                            </td>
+                                            <td class="text-end">@status.TicketCount</td>
+                                            <td class="text-end">@status.Percentage.ToString("F1")%</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-secondary fw-bold">
+                                        <td>Total</td>
+                                        <td class="text-end">@Model.Sum(s => s.TicketCount)</td>
+                                        <td class="text-end">100%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bars -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Visual Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model?.Any() == true)
+                    {
+                        @foreach (var status in Model)
+                        {
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>@status.StatusName</span>
+                                    <span>@status.TicketCount tickets (@status.Percentage.ToString("F1")%)</span>
+                                </div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: @status.Percentage%; background-color: @(string.IsNullOrEmpty(status.Color) ? "#6c757d" : status.Color);" 
+                                         aria-valuenow="@status.Percentage" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

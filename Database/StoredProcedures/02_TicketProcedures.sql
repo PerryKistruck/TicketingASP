@@ -312,7 +312,7 @@ BEGIN
       AND (p_requester_id IS NULL OR t.RequesterId = p_requester_id)
       AND (p_date_from IS NULL OR t.CreatedAt >= p_date_from)
       AND (p_date_to IS NULL OR t.CreatedAt <= p_date_to)
-      AND (p_include_closed = TRUE OR t.StatusId NOT IN (SELECT Id FROM Statuses WHERE IsClosed = TRUE))
+      AND (p_include_closed = TRUE OR t.StatusId NOT IN (SELECT st.Id FROM Statuses st WHERE st.IsClosed = TRUE))
       AND (
           p_user_role IN ('Administrator', 'Manager', 'Agent')
           OR t.RequesterId = p_user_id
@@ -344,7 +344,7 @@ BEGIN
       AND (p_requester_id IS NULL OR t.RequesterId = p_requester_id)
       AND (p_date_from IS NULL OR t.CreatedAt >= p_date_from)
       AND (p_date_to IS NULL OR t.CreatedAt <= p_date_to)
-      AND (p_include_closed = TRUE OR t.StatusId NOT IN (SELECT Id FROM Statuses WHERE IsClosed = TRUE))
+      AND (p_include_closed = TRUE OR t.StatusId NOT IN (SELECT st.Id FROM Statuses st WHERE st.IsClosed = TRUE))
       AND (
           p_user_role IN ('Administrator', 'Manager', 'Agent')
           OR t.RequesterId = p_user_id

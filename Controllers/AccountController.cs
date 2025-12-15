@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingASP.Models.DTOs;
 using TicketingASP.Services;
@@ -7,6 +10,7 @@ namespace TicketingASP.Controllers;
 /// <summary>
 /// Controller for authentication operations
 /// </summary>
+[AllowAnonymous]
 public class AccountController : Controller
 {
     private readonly IUserService _userService;
@@ -51,8 +55,32 @@ public class AccountController : Controller
             return View(dto);
         }
 
-        // TODO: Set up authentication cookie/session
-        // For now, just redirect
+        // Create claims for the authenticated user
+        var user = result.Data!;
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.DisplayName),
+            new Claim(ClaimTypes.Email, user.Email)
+        };
+
+        // Add role claims
+        foreach (var role in user.Roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role.Name));
+        }
+
+        var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
+        var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = dto.RememberMe,
+            ExpiresUtc = dto.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddHours(8)
+        };
+
+        await HttpContext.SignInAsync("Cookies", claimsPrincipal, authProperties);
+        
         _logger.LogInformation("User {Email} logged in successfully", dto.Email);
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -60,7 +88,7 @@ public class AccountController : Controller
             return Redirect(returnUrl);
         }
 
-        return RedirectToAction("Dashboard", "Reports");
+        return RedirectToAction("Index", "Home");
     }
 
     /// <summary>
@@ -101,10 +129,10 @@ public class AccountController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
-        // TODO: Clear authentication cookie/session
-        _logger.LogInformation("User logged out");
+        await HttpContext.SignOutAsync("Cookies");
+        _logger.LogInformation("User {Name} logged out", User.Identity?.Name);
 
         return RedirectToAction(nameof(Login));
     }
@@ -223,8 +251,8 @@ public class AccountController : Controller
 
     private int GetCurrentUserId()
     {
-        // TODO: Implement proper authentication
-        return 1;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
     #endregion
