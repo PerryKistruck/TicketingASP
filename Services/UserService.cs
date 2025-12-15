@@ -58,12 +58,14 @@ public class UserService : IUserService
     public async Task<OperationResult<UserDetailDto>> LoginAsync(LoginDto dto, string? ipAddress = null, string? userAgent = null)
     {
         _logger.LogInformation("Login attempt for user {Email}", dto.Email);
+        Console.WriteLine($"[INFO] Login attempt for user {dto.Email}");
 
         var loginInfo = await _userRepository.GetByEmailForLoginAsync(dto.Email);
 
         if (loginInfo == null)
         {
             _logger.LogWarning("Login failed - user not found: {Email}", dto.Email);
+            Console.WriteLine($"[WARN] Login failed - user not found: {dto.Email}");
             return OperationResult<UserDetailDto>.FailureResult("Invalid email or password");
         }
 
@@ -72,23 +74,27 @@ public class UserService : IUserService
         if (!isActive)
         {
             _logger.LogWarning("Login failed - user inactive: {Email}", dto.Email);
+            Console.WriteLine($"[WARN] Login failed - user inactive: {dto.Email}");
             return OperationResult<UserDetailDto>.FailureResult("Account is inactive");
         }
 
         if (isLocked)
         {
             _logger.LogWarning("Login failed - user locked: {Email}", dto.Email);
+            Console.WriteLine($"[WARN] Login failed - user locked: {dto.Email}");
             return OperationResult<UserDetailDto>.FailureResult("Account is locked. Please contact administrator.");
         }
 
         // Verify password
         _logger.LogDebug("Verifying password for user {Email}. Stored hash length: {HashLen}, Salt length: {SaltLen}", 
             dto.Email, passwordHash?.Length ?? 0, passwordSalt?.Length ?? 0);
+        Console.WriteLine($"[DEBUG] Verifying password for user {dto.Email}. Stored hash length: {passwordHash?.Length ?? 0}, Salt length: {passwordSalt?.Length ?? 0}");
         
         if (!VerifyPassword(dto.Password, passwordHash!, passwordSalt!))
         {
             await _userRepository.UpdateLoginAttemptAsync(id!.Value, false, ipAddress, userAgent);
             _logger.LogWarning("Login failed - invalid password: {Email}", dto.Email);
+            Console.WriteLine($"[WARN] Login failed - invalid password: {dto.Email}");
             return OperationResult<UserDetailDto>.FailureResult("Invalid email or password");
         }
 
@@ -97,6 +103,7 @@ public class UserService : IUserService
 
         var user = await _userRepository.GetByIdAsync(id!.Value);
         _logger.LogInformation("Login successful for user {Email}", dto.Email);
+    Console.WriteLine($"[INFO] Login successful for user {dto.Email}");
 
         return OperationResult<UserDetailDto>.SuccessResult(user!, "Login successful");
     }

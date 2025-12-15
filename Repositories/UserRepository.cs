@@ -99,6 +99,7 @@ public class UserRepository : IUserRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
 
             _logger.LogInformation("GetByEmailForLoginAsync: Querying for email={Email}", email.ToLower());
+            Console.WriteLine($"[INFO] GetByEmailForLoginAsync: Querying for email={email.ToLower()}");
 
             var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
                 "SELECT * FROM sp_user_get_by_email(@p_email)",
@@ -107,6 +108,7 @@ public class UserRepository : IUserRepository
             if (result == null)
             {
                 _logger.LogWarning("GetByEmailForLoginAsync: No user found for email={Email}", email.ToLower());
+                Console.WriteLine($"[WARN] GetByEmailForLoginAsync: No user found for email={email.ToLower()}");
                 return null;
             }
 
@@ -123,12 +125,14 @@ public class UserRepository : IUserRepository
                 passwordSalt?.Length ?? 0,
                 isActive,
                 isLocked);
+            Console.WriteLine($"[INFO] GetByEmailForLoginAsync: Found user id={userId}, hash_length={passwordHash?.Length ?? 0}, salt_length={passwordSalt?.Length ?? 0}, is_active={isActive}, is_locked={isLocked}");
 
             return (userId, passwordHash, passwordSalt, isActive, isLocked);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user by email {Email}: {Message}", email, ex.Message);
+            Console.WriteLine($"[ERROR] GetByEmailForLoginAsync: Exception for email={email}: {ex.Message}");
             return null;
         }
     }
