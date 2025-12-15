@@ -15,9 +15,23 @@ public static class ServiceExtensions
     /// </summary>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Get connection string - Azure provides AZURE_POSTGRESQL_CONNECTIONSTRING, locally use DefaultConnection from User Secrets
-        var connectionString = configuration["AZURE_POSTGRESQL_CONNECTIONSTRING"] 
+        // Get connection string - check multiple locations:
+        // 1. Azure Connection String (prefixed by type): POSTGRESQLCONNSTR_AZURE_POSTGRESQL_CONNECTIONSTRING
+        // 2. Azure App Setting: AZURE_POSTGRESQL_CONNECTIONSTRING
+        // 3. Azure Connection String via GetConnectionString
+        // 4. Local User Secrets: ConnectionStrings:DefaultConnection
+        var connectionString = configuration["POSTGRESQLCONNSTR_AZURE_POSTGRESQL_CONNECTIONSTRING"]
+            ?? configuration["AZURE_POSTGRESQL_CONNECTIONSTRING"] 
+            ?? configuration.GetConnectionString("AZURE_POSTGRESQL_CONNECTIONSTRING")
             ?? configuration.GetConnectionString("DefaultConnection");
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Database connection string not found. " +
+                "Please set AZURE_POSTGRESQL_CONNECTIONSTRING in Azure App Settings or Connection Strings, " +
+                "or configure ConnectionStrings:DefaultConnection locally.");
+        }
         
         // Add DbContext with PostgreSQL
         services.AddDbContext<TicketingDbContext>(options =>
