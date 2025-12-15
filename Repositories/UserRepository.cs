@@ -98,8 +98,7 @@ public class UserRepository : IUserRepository
         {
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
 
-            _logger.LogInformation("GetByEmailForLoginAsync: Querying for email={Email}", email.ToLower());
-            Console.WriteLine($"[INFO] GetByEmailForLoginAsync: Querying for email={email.ToLower()}");
+            _logger.LogDebug("GetByEmailForLoginAsync: Attempting to find user by email");
 
             var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
                 "SELECT * FROM sp_user_get_by_email(@p_email)",
@@ -107,8 +106,7 @@ public class UserRepository : IUserRepository
 
             if (result == null)
             {
-                _logger.LogWarning("GetByEmailForLoginAsync: No user found for email={Email}", email.ToLower());
-                Console.WriteLine($"[WARN] GetByEmailForLoginAsync: No user found for email={email.ToLower()}");
+                _logger.LogDebug("GetByEmailForLoginAsync: No user found with the provided email");
                 return null;
             }
 
@@ -120,19 +118,13 @@ public class UserRepository : IUserRepository
             bool isLocked = (bool)result.is_locked;
 
             _logger.LogInformation("GetByEmailForLoginAsync: Found user id={UserId}, hash_length={HashLen}, salt_length={SaltLen}, is_active={IsActive}, is_locked={IsLocked}",
-                userId,
-                passwordHash?.Length ?? 0,
-                passwordSalt?.Length ?? 0,
-                isActive,
-                isLocked);
-            Console.WriteLine($"[INFO] GetByEmailForLoginAsync: Found user id={userId}, hash_length={passwordHash?.Length ?? 0}, salt_length={passwordSalt?.Length ?? 0}, is_active={isActive}, is_locked={isLocked}");
+                userId, passwordHash?.Length ?? 0, passwordSalt?.Length ?? 0, isActive, isLocked);
 
             return (userId, passwordHash, passwordSalt, isActive, isLocked);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user by email {Email}: {Message}", email, ex.Message);
-            Console.WriteLine($"[ERROR] GetByEmailForLoginAsync: Exception for email={email}: {ex.Message}");
+            _logger.LogError(ex, "Error in GetByEmailForLoginAsync for email");
             return null;
         }
     }

@@ -22,9 +22,9 @@
                 <h5 class="mb-0"><i class="bi bi-award me-2"></i>Leaderboard</h5>
             </div>
             <div class="card-body p-0">
-                @if (Model?.Any() == true)
+                @if (Model?.Any(a => a.TotalAssigned > 0 || a.ResolvedCount > 0) == true)
                 {
-                    var topAgents = Model.OrderByDescending(a => a.ResolvedCount).Take(5).ToList();
+                    var topAgents = Model.Where(a => a.TotalAssigned > 0 || a.ResolvedCount > 0).OrderByDescending(a => a.ResolvedCount).Take(5).ToList();
                     <ul class="list-group list-group-flush">
                         @for (int i = 0; i < topAgents.Count; i++)
                         {
@@ -62,7 +62,7 @@
         <h5 class="mb-0"><i class="bi bi-table me-2"></i>Agent Performance Details</h5>
     </div>
     <div class="card-body">
-        @if (Model?.Any() == true)
+        @if (Model?.Any(a => a.TotalAssigned > 0 || a.ResolvedCount > 0) == true)
         {
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -79,7 +79,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var agent in Model.OrderByDescending(a => a.ResolvedCount))
+                        @foreach (var agent in Model.Where(a => a.TotalAssigned > 0 || a.ResolvedCount > 0).OrderByDescending(a => a.ResolvedCount))
                         {
                             var resolutionRate = agent.TotalAssigned > 0 ? (decimal)agent.ResolvedCount / agent.TotalAssigned * 100 : 0;
                             <tr>

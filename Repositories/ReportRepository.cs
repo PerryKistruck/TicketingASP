@@ -123,9 +123,9 @@ public class ReportRepository : IReportRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var result = await connection.QueryAsync<TeamPerformanceDto>(
-                @"SELECT team_id AS TeamId, team_name AS TeamName, total_assigned AS TotalAssigned,
-                         resolved_count AS ResolvedCount, open_count AS OpenCount,
-                         avg_resolution_hours AS AvgResolutionHours, avg_first_response_hours AS AvgFirstResponseHours,
+                @"SELECT team_id AS TeamId, team_name AS TeamName, total_assigned AS AssignedTickets,
+                         resolved_count AS ResolvedTickets, open_count AS OpenTickets, overdue_count AS OverdueTickets,
+                         avg_resolution_hours AS AvgResolutionHours, avg_first_response_hours AS AvgResponseHours,
                          sla_compliance_percent AS SlaCompliancePercent
                   FROM sp_report_team_performance(@p_date_from, @p_date_to)",
                 new { p_date_from = dateFrom, p_date_to = dateTo });

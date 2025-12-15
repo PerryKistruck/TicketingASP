@@ -160,6 +160,7 @@ RETURNS TABLE(
     total_assigned BIGINT,
     resolved_count BIGINT,
     open_count BIGINT,
+    overdue_count BIGINT,
     avg_resolution_hours NUMERIC,
     avg_first_response_hours NUMERIC,
     sla_compliance_percent NUMERIC
@@ -170,6 +171,7 @@ BEGIN
            COUNT(t.Id) AS total_assigned,
            COUNT(t.Id) FILTER (WHERE st.Name = 'Resolved' OR st.IsClosed = TRUE) AS resolved_count,
            COUNT(t.Id) FILTER (WHERE st.IsClosed = FALSE) AS open_count,
+           COUNT(t.Id) FILTER (WHERE t.DueDate < CURRENT_TIMESTAMP AND st.IsClosed = FALSE) AS overdue_count,
            ROUND(AVG(EXTRACT(EPOCH FROM (t.ResolvedAt - t.CreatedAt)) / 3600) 
                  FILTER (WHERE t.ResolvedAt IS NOT NULL), 2) AS avg_resolution_hours,
            ROUND(AVG(EXTRACT(EPOCH FROM (t.FirstResponseAt - t.CreatedAt)) / 3600) 

@@ -7,6 +7,14 @@
     <UserSecretsId>ticketing-asp-dev</UserSecretsId>
   </PropertyGroup>
 
+  <!-- Exclude test project folder from main project compilation -->
+  <ItemGroup>
+    <Compile Remove="TicketingASP.Tests\**" />
+    <Content Remove="TicketingASP.Tests\**" />
+    <EmbeddedResource Remove="TicketingASP.Tests\**" />
+    <None Remove="TicketingASP.Tests\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- PostgreSQL / Entity Framework Core -->
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />

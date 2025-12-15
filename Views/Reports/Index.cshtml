@@ -93,24 +93,43 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
+        // Track initialized charts
+        let slaChartInitialized = false;
+        let teamChartInitialized = false;
+        let agentChartInitialized = false;
+
         function updateActiveTab(tabName) {
             document.getElementById('activeTabInput').value = tabName;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize charts after DOM is ready
-            initializeSlaChart();
-            initializeTeamChart();
-            initializeAgentChart();
+            // Initialize the chart for the active tab
+            const activeTab = '@Model.ActiveTab';
+            if (activeTab === 'sla') initializeSlaChart();
+            else if (activeTab === 'team') initializeTeamChart();
+            else if (activeTab === 'agent') initializeAgentChart();
+
+            // Listen for tab shown events to initialize charts when tabs become visible
+            document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tabButton) {
+                tabButton.addEventListener('shown.bs.tab', function(event) {
+                    const targetId = event.target.getAttribute('data-bs-target');
+                    if (targetId === '#sla-content') initializeSlaChart();
+                    else if (targetId === '#team-content') initializeTeamChart();
+                    else if (targetId === '#agent-content') initializeAgentChart();
+                });
+            });
         });
 
         function initializeSlaChart() {
+            if (slaChartInitialized) return;
             const ctx = document.getElementById('slaChart');
             if (!ctx) return;
 
-            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SlaCompliance));
+            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SlaCompliance, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+            console.log('SLA Data:', data);
             if (!data || data.length === 0) return;
 
+            slaChartInitialized = true;
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -151,12 +170,15 @@
         }
 
         function initializeTeamChart() {
+            if (teamChartInitialized) return;
             const ctx = document.getElementById('teamChart');
             if (!ctx) return;
 
-            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TeamPerformance));
+            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TeamPerformance, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+            console.log('Team Data:', data);
             if (!data || data.length === 0) return;
 
+            teamChartInitialized = true;
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -203,17 +225,23 @@
         }
 
         function initializeAgentChart() {
+            if (agentChartInitialized) return;
             const ctx = document.getElementById('agentChart');
             if (!ctx) return;
 
-            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AgentPerformance));
+            const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AgentPerformance, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+            console.log('Agent Data:', data);
             if (!data || data.length === 0) return;
 
-            // Take top 10 agents by resolved count
-            const topAgents = data.sort((a, b) => b.resolvedCount - a.resolvedCount).slice(0, 10);
+            // Filter to agents with activity and take top 10 by resolved count
+            const activeAgents = data.filter(a => a.totalAssigned > 0 || a.resolvedCount > 0);
+            if (activeAgents.length === 0) return;
+            
+            const topAgents = activeAgents.sort((a, b) => b.resolvedCount - a.resolvedCount).slice(0, 10);
 
+            agentChartInitialized = true;
             new Chart(ctx, {
-                type: 'horizontalBar',
+                type: 'bar',
                 data: {
                     labels: topAgents.map(d => d.userName),
                     datasets: [
