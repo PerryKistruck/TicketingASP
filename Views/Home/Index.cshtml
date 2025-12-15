@@ -1,22 +1,134 @@
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Welcome";
+    Layout = "_Layout";
 }
 
+<!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">
-        <h1>TicketingASP</h1>
-        <p>A streamlined ticketing solution built for efficiency.</p>
+        <h1><i class="bi bi-ticket-perforated me-3"></i>TicketingASP</h1>
+        <p>A modern, streamlined ticketing solution built for efficiency. Manage support requests, track issues, and resolve problems faster than ever.</p>
         <div class="hero-actions">
-            <a href="#about" class="btn btn-primary btn-lg">Get Started</a>
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg">
+                    <i class="bi bi-person-plus me-2"></i>Get Started Free
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline btn-lg">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Tickets" asp-action="Index" class="btn btn-primary btn-lg">
+                    <i class="bi bi-ticket me-2"></i>View My Tickets
+                </a>
+                <a asp-controller="Tickets" asp-action="Create" class="btn btn-outline btn-lg">
+                    <i class="bi bi-plus-circle me-2"></i>Create Ticket
+                </a>
+            }
         </div>
     </div>
 </section>
 
-<section id="about" class="features">
-    <div class="features-grid" style="max-width: 600px; margin: 0 auto;">
+<!-- Features Section -->
+<section id="features" class="features">
+    <div class="features-header">
+        <h2><i class="bi bi-stars me-2"></i>Why Choose TicketingASP?</h2>
+        <p class="text-muted">Everything you need to manage support efficiently</p>
+    </div>
+    <div class="features-grid">
         <div class="feature-card">
-            <h3>Simple & Quick</h3>
-            <p>TicketingASP provides a straightforward approach to ticket management. Create, track, and resolve issues efficiently with a clean, intuitive interface designed to keep your workflow moving.</p>
+            <span class="feature-icon text-primary"><i class="bi bi-lightning-charge-fill"></i></span>
+            <h3>Fast & Intuitive</h3>
+            <p>Create and manage tickets in seconds with our clean, user-friendly interface. No learning curve required.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon text-success"><i class="bi bi-people-fill"></i></span>
+            <h3>Team Collaboration</h3>
+            <p>Assign tickets to teams and agents, collaborate on solutions, and keep everyone in the loop.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon text-info"><i class="bi bi-graph-up-arrow"></i></span>
+            <h3>Powerful Reports</h3>
+            <p>Track performance with detailed analytics, SLA compliance reports, and trend analysis dashboards.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon text-warning"><i class="bi bi-shield-check"></i></span>
+            <h3>Role-Based Access</h3>
+            <p>Secure access control with customizable roles for administrators, managers, agents, and users.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon text-danger"><i class="bi bi-clock-history"></i></span>
+            <h3>SLA Management</h3>
+            <p>Set response and resolution time targets, monitor compliance, and never miss a deadline.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon text-secondary"><i class="bi bi-tags-fill"></i></span>
+            <h3>Smart Categorization</h3>
+            <p>Organize tickets by category, priority, and status for efficient workflow management.</p>
         </div>
     </div>
 </section>
+
+<!-- How It Works Section -->
+<section class="how-it-works my-5">
+    <div class="text-center mb-5">
+        <h2 class="text-primary"><i class="bi bi-gear-wide-connected me-2"></i>How It Works</h2>
+        <p class="text-muted">Get started in three simple steps</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        <strong>1</strong>
+                    </div>
+                    <h5 class="card-title">Create an Account</h5>
+                    <p class="card-text text-muted">Sign up in seconds and get immediate access to the ticketing system.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        <strong>2</strong>
+                    </div>
+                    <h5 class="card-title">Submit a Ticket</h5>
+                    <p class="card-text text-muted">Describe your issue, set the priority, and submit. It's that easy.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        <strong>3</strong>
+                    </div>
+                    <h5 class="card-title">Track Progress</h5>
+                    <p class="card-text text-muted">Monitor your ticket status and receive updates until resolution.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <section class="cta-section text-center py-5 my-5 rounded-4" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #1a5a3e) 100%);">
+        <div class="container">
+            <h2 class="text-white mb-3"><i class="bi bi-rocket-takeoff me-2"></i>Ready to Get Started?</h2>
+            <p class="text-white-50 mb-4">Join TicketingASP today and streamline your support workflow.</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a asp-controller="Account" asp-action="Register" class="btn btn-light btn-lg">
+                    <i class="bi bi-person-plus me-2"></i>Create Free Account
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </a>
+            </div>
+        </div>
+    </section>
+}
