@@ -39,8 +39,8 @@ export default defineConfig({
   
   /* Shared settings for all the projects below */
   use: {
-    /* Base URL for the application */
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5050',
+    /* Base URL for the application - use BASE_URL in CI, localhost for local dev */
+    baseURL: process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5050',
 
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
@@ -76,11 +76,11 @@ export default defineConfig({
     timeout: 15000,
   },
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
+  /* Run your local dev server before starting the tests - disabled in CI when using external URL */
+  webServer: process.env.CI ? undefined : {
     command: 'dotnet run --project ../TicketingASP.csproj --urls http://localhost:5050',
     url: 'http://localhost:5050',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120000,
     stdout: 'pipe',
     stderr: 'pipe',
