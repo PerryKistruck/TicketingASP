@@ -6,6 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Dapper to map snake_case database columns to PascalCase properties
 DefaultTypeMap.MatchNamesWithUnderscores = true;
 
+// Remove the Kestrel server header to avoid leaking server details
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 // Configure services using extension methods for modularity
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddMvcServices();

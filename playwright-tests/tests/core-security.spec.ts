@@ -240,6 +240,7 @@ test.describe('Open Redirect Prevention', () => {
   
   test('external redirects are blocked', async ({ page }) => {
     const maliciousUrls = ['https://evil.com', '//evil.com', 'javascript:alert(1)'];
+    const expectedHost = new URL(process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5050').host;
     
     for (const url of maliciousUrls) {
       await page.goto(`/Account/Login?returnUrl=${encodeURIComponent(url)}`);
@@ -249,7 +250,7 @@ test.describe('Open Redirect Prevention', () => {
       
       // Should not redirect to external URL
       expect(page.url()).not.toContain('evil.com');
-      expect(page.url()).toContain('localhost');
+      expect(new URL(page.url()).host).toBe(expectedHost);
       
       // Logout for next iteration
       if (!page.url().includes('Login')) {
