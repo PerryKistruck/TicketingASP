@@ -1,6 +1,9 @@
 import { chromium, FullConfig } from '@playwright/test';
 import { TestUsers, TEST_PASSWORD } from './tests/fixtures/test-data';
 
+// Get base URL from environment or default to localhost
+const BASE_URL = process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5050';
+
 // List of test user emails that need to be unlocked before tests
 const TEST_USER_EMAILS = [
   TestUsers.manager1.email,
@@ -16,7 +19,8 @@ const TEST_USER_EMAILS = [
  * Ensures test accounts are unlocked and ready
  */
 async function globalSetup(config: FullConfig) {
-  console.log('\n🔧 Running global setup...');
+  console.log('\n[Setup] Running global setup...');
+  console.log(`   Base URL: ${BASE_URL}`);
   
   const browser = await chromium.launch();
   const context = await browser.newContext();
@@ -24,7 +28,7 @@ async function globalSetup(config: FullConfig) {
   
   try {
     // Try to login as admin to verify the app is running
-    await page.goto('http://localhost:5050/Account/Login', { timeout: 30000 });
+    await page.goto(`${BASE_URL}/Account/Login`, { timeout: 30000 });
     await page.fill('input[name="Email"]', TestUsers.admin.email);
     await page.fill('input[name="Password"]', TestUsers.admin.password);
     await page.click('button[type="submit"]');
@@ -33,35 +37,35 @@ async function globalSetup(config: FullConfig) {
     // Check if login succeeded
     if (page.url().includes('/Login')) {
       const errorText = await page.locator('.alert-danger').textContent().catch(() => '');
-      console.log(`⚠️  Admin login issue: ${errorText || 'Unknown error'}`);
+      console.log(`[Warning] Admin login issue: ${errorText || 'Unknown error'}`);
       console.log('   You may need to run the cleanup SQL script to reset passwords');
     } else {
-      console.log('✅ Application is running and admin can login');
+      console.log('[OK] Application is running and admin can login');
       
       // Unlock and reset passwords for all test user accounts via the UI
       await unlockAndResetTestUsers(page);
     }
     
   } catch (error) {
-    console.log(`⚠️  Setup error: ${error}`);
-    console.log('   Make sure the application is running on http://localhost:5050');
+    console.log(`[Warning] Setup error: ${error}`);
+    console.log(`   Make sure the application is running on ${BASE_URL}`);
   } finally {
     await browser.close();
   }
   
-  console.log('✅ Global setup complete\n');
+  console.log('[OK] Global setup complete\n');
 }
 
 /**
  * Unlock and reset passwords for all test user accounts
  */
 async function unlockAndResetTestUsers(page: any) {
-  console.log('🔓 Preparing test user accounts...');
+  console.log('[Setup] Preparing test user accounts...');
   
   for (const email of TEST_USER_EMAILS) {
     try {
       // Search for the user
-      await page.goto(`http://localhost:5050/Users?search=${encodeURIComponent(email)}`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/Users?search=${encodeURIComponent(email)}`, { waitUntil: 'networkidle' });
       
       // Find the user row and click to view details
       const userLink = page.locator(`a[href*="/Users/Details/"]`).first();
@@ -81,9 +85,9 @@ async function unlockAndResetTestUsers(page: any) {
           // Check for success message
           const successMsg = await page.locator('.alert-success').textContent().catch(() => '');
           if (successMsg.includes('reset') || successMsg.includes('unlocked')) {
-            console.log(`   ✓ Reset password for: ${email}`);
+            console.log(`   - Reset password for: ${email}`);
           } else {
-            console.log(`   ✓ Password reset submitted for: ${email}`);
+            console.log(`   - Password reset submitted for: ${email}`);
           }
         } else {
           // No reset password form - just check if locked
@@ -91,20 +95,20 @@ async function unlockAndResetTestUsers(page: any) {
           if (await unlockButton.isVisible({ timeout: 1000 })) {
             await unlockButton.click();
             await page.waitForLoadState('networkidle');
-            console.log(`   ✓ Unlocked: ${email}`);
+            console.log(`   - Unlocked: ${email}`);
           } else {
-            console.log(`   ✓ Already ready: ${email}`);
+            console.log(`   - Already ready: ${email}`);
           }
         }
       } else {
-        console.log(`   ⚠️ User not found: ${email}`);
+        console.log(`   [Warning] User not found: ${email}`);
       }
     } catch (error) {
-      console.log(`   ⚠️ Error preparing ${email}: ${error}`);
+      console.log(`   [Warning] Error preparing ${email}: ${error}`);
     }
   }
   
-  console.log('✅ Test user accounts ready');
+  console.log('[OK] Test user accounts ready');
 }
 
 export default globalSetup;

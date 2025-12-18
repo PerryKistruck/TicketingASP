@@ -332,7 +332,7 @@ export async function unlockUserAccount(page: Page, userEmail: string, newPasswo
     
     // Check if login succeeded
     if (page.url().includes('/Login')) {
-      console.log('⚠️  Admin login failed - cannot unlock user');
+      console.log('[Warning] Admin login failed - cannot unlock user');
       return;
     }
     
@@ -350,7 +350,7 @@ export async function unlockUserAccount(page: Page, userEmail: string, newPasswo
       if (await unlockButton.isVisible({ timeout: 1000 }).catch(() => false)) {
         await unlockButton.click();
         await page.waitForLoadState('networkidle');
-        console.log(`   🔓 Unlocked account: ${userEmail}`);
+        console.log(`   [OK] Unlocked account: ${userEmail}`);
       }
       
       // Reset password to ensure it's correct
@@ -364,6 +364,6 @@ export async function unlockUserAccount(page: Page, userEmail: string, newPasswo
       }
     }
   } catch (error) {
-    console.log(`⚠️  Error unlocking account ${userEmail}: ${error}`);
+    console.log(`[Warning] Error unlocking account ${userEmail}: ${error}`);
   }
 }

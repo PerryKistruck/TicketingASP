@@ -6,7 +6,7 @@ import { Client } from 'pg';
  */
 const CONFIG = {
   // API endpoint for cleanup (used in CI/CD or Azure)
-  apiBaseUrl: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5050',
+  apiBaseUrl: process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5050',
   apiKey: process.env.TEST_CLEANUP_API_KEY || 'test-cleanup-key-change-in-production',
   
   // Database connection (used for local development with SSH tunnel)
@@ -25,7 +25,7 @@ const CONFIG = {
  * Tries API cleanup first (works in CI/CD), falls back to direct DB (local dev)
  */
 async function globalTeardown(config: FullConfig) {
-  console.log('\n🧹 Running global cleanup...');
+  console.log('\n[Cleanup] Running global cleanup...');
   
   // Try API cleanup first (works in CI/CD and Azure)
   const apiSuccess = await tryApiCleanup();
@@ -54,14 +54,14 @@ async function tryApiCleanup(): Promise<boolean> {
     });
     
     if (!response.ok) {
-      console.log(`   ⚠️  API cleanup failed with status ${response.status}`);
+      console.log(`   [Warning] API cleanup failed with status ${response.status}`);
       return false;
     }
     
     const result = await response.json() as CleanupResult;
     
     if (result.success) {
-      console.log('✅ API Cleanup successful:');
+      console.log('[OK] API Cleanup successful:');
       console.log(`   - Deleted tickets: ${result.deletedTickets}`);
       console.log(`   - Deleted team members: ${result.deletedTeamMembers}`);
       console.log(`   - Deleted teams: ${result.deletedTeams}`);
@@ -69,11 +69,11 @@ async function tryApiCleanup(): Promise<boolean> {
       console.log(`   - Unlocked users: ${result.unlockedUsers}`);
       return true;
     } else {
-      console.log(`   ⚠️  API cleanup reported failure: ${result.message}`);
+      console.log(`   [Warning] API cleanup reported failure: ${result.message}`);
       return false;
     }
   } catch (error) {
-    console.log(`   ⚠️  API cleanup unavailable: ${error}`);
+    console.log(`   [Warning] API cleanup unavailable: ${error}`);
     return false;
   }
 }
@@ -97,7 +97,7 @@ async function tryDatabaseCleanup(): Promise<boolean> {
   
   try {
     await client.connect();
-    console.log('   ✅ Connected to database');
+    console.log('   [OK] Connected to database');
     
     // Run comprehensive cleanup
     await client.query(`
@@ -318,21 +318,21 @@ async function tryDatabaseCleanup(): Promise<boolean> {
     `);
     
     const row = stats.rows[0];
-    console.log(`  🗑️  Cleanup verification:`);
+    console.log(`   Cleanup verification:`);
     console.log(`     - Remaining test teams: ${row.remaining_test_teams}`);
     console.log(`     - Remaining test tickets: ${row.remaining_test_tickets}`);
     console.log(`     - Locked users: ${row.locked_users}`);
     
     if (row.remaining_test_teams === '0' && row.remaining_test_tickets === '0' && row.locked_users === '0') {
-      console.log('✅ Database fully cleaned up');
+      console.log('[OK] Database fully cleaned up');
     } else {
-      console.log('⚠️  Some test data may remain');
+      console.log('[Warning] Some test data may remain');
     }
     
     return true;
     
   } catch (error) {
-    console.log(`   ⚠️  SQL Cleanup error: ${error}`);
+    console.log(`   [Warning] SQL Cleanup error: ${error}`);
     console.log('      Make sure the SSH tunnel is running for database access');
     return false;
   } finally {

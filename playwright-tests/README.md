@@ -2,7 +2,7 @@
 
 A focused end-to-end test suite for the TicketingASP application using Playwright. This test suite focuses on **essential security testing** and core functionality verification.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 playwright-tests/
@@ -23,14 +23,14 @@ playwright-tests/
 │   └── navigation/                # (Legacy) Additional navigation tests
 ```
 
-## ✨ Key Features
+## Key Features
 
 - **30 focused tests** covering essential security and functionality
 - **Single browser** (Chromium) for fast execution
 - **Automatic cleanup** - all test data is cleaned up after tests run
 - **Account recovery** - locked accounts are automatically unlocked
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -57,7 +57,7 @@ dotnet run
 
 The default base URL is `http://localhost:5050`. You can change this by setting the `BASE_URL` environment variable.
 
-## 🧪 Running Tests
+## Running Tests
 
 ### Run All Tests
 
@@ -113,7 +113,7 @@ npx playwright test --project=firefox
 npx playwright test --project=webkit
 ```
 
-## 📊 Test Reports
+## Test Reports
 
 After running tests, view the HTML report:
 
@@ -121,63 +121,63 @@ After running tests, view the HTML report:
 npm run report
 ```
 
-## 🔐 Security Test Coverage
+## Security Test Coverage
 
 The test suite includes comprehensive security testing:
 
 ### 1. Authentication Security
-- ✅ Login validation
-- ✅ Password requirements enforcement
-- ✅ Session management
-- ✅ Logout functionality
-- ✅ Remember me functionality
+- [x] Login validation
+- [x] Password requirements enforcement
+- [x] Session management
+- [x] Logout functionality
+- [x] Remember me functionality
 
 ### 2. Authorization & Access Control
-- ✅ Role-based access control (User, Agent, Manager, Admin)
-- ✅ Horizontal access control (users can't access others' data)
-- ✅ Protected route enforcement
-- ✅ Navigation element visibility by role
+- [x] Role-based access control (User, Agent, Manager, Admin)
+- [x] Horizontal access control (users can't access others' data)
+- [x] Protected route enforcement
+- [x] Navigation element visibility by role
 
 ### 3. XSS Prevention
-- ✅ Reflected XSS in form fields
-- ✅ Stored XSS in ticket fields
-- ✅ DOM-based XSS
-- ✅ Event handler injection prevention
-- ✅ Content Security Policy validation
+- [x] Reflected XSS in form fields
+- [x] Stored XSS in ticket fields
+- [x] DOM-based XSS
+- [x] Event handler injection prevention
+- [x] Content Security Policy validation
 
 ### 4. CSRF Protection
-- ✅ Anti-forgery token presence
-- ✅ Token validation
-- ✅ Cross-origin request blocking
-- ✅ SameSite cookie attributes
+- [x] Anti-forgery token presence
+- [x] Token validation
+- [x] Cross-origin request blocking
+- [x] SameSite cookie attributes
 
 ### 5. SQL Injection Prevention
-- ✅ Login form injection
-- ✅ Search/filter injection
-- ✅ ID parameter injection
-- ✅ Form input injection
-- ✅ Blind SQL injection prevention
+- [x] Login form injection
+- [x] Search/filter injection
+- [x] ID parameter injection
+- [x] Form input injection
+- [x] Blind SQL injection prevention
 
 ### 6. Session Security
-- ✅ Session fixation prevention
-- ✅ Session timeout validation
-- ✅ Cookie security attributes (HttpOnly, Secure, SameSite)
-- ✅ Session invalidation on logout
+- [x] Session fixation prevention
+- [x] Session timeout validation
+- [x] Cookie security attributes (HttpOnly, Secure, SameSite)
+- [x] Session invalidation on logout
 
 ### 7. Security Headers
-- ✅ X-Content-Type-Options
-- ✅ X-Frame-Options
-- ✅ Referrer-Policy
-- ✅ Server information disclosure prevention
+- [x] X-Content-Type-Options
+- [x] X-Frame-Options
+- [x] Referrer-Policy
+- [x] Server information disclosure prevention
 
 ### 8. Additional Security
-- ✅ Open redirect prevention
-- ✅ Clickjacking prevention
-- ✅ Information disclosure prevention
-- ✅ HTTP methods security
-- ✅ Password masking
+- [x] Open redirect prevention
+- [x] Clickjacking prevention
+- [x] Information disclosure prevention
+- [x] HTTP methods security
+- [x] Password masking
 
-## 👤 Test Users
+## Test Users
 
 The test suite uses predefined test users from the database:
 
@@ -188,16 +188,19 @@ The test suite uses predefined test users from the database:
 | Agent | james.taylor@company.com | Test@123 |
 | User | john.smith@testcorp.com | Test@123 |
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PLAYWRIGHT_BASE_URL` | Application base URL | `http://localhost:5050` |
+| `BASE_URL` | Application base URL (CI priority) | - |
+| `PLAYWRIGHT_BASE_URL` | Application base URL (local dev) | `http://localhost:5050` |
 | `TEST_CLEANUP_API_KEY` | API key for cleanup endpoint | `test-cleanup-key-change-in-production` |
 | `DB_PASSWORD` | Database password (local dev only) | `Ticketing@123!` |
 | `CI` | Running in CI environment | - |
+
+**URL Resolution Priority**: `BASE_URL` → `PLAYWRIGHT_BASE_URL` → `http://localhost:5050`
 
 ### Cleanup Strategy
 
@@ -258,7 +261,7 @@ Edit `playwright.config.ts` to customize:
 - Screenshots and video recording
 - Web server startup
 
-## 🔧 Code Generation
+## Code Generation
 
 Generate test code by recording browser actions:
 
@@ -266,7 +269,7 @@ Generate test code by recording browser actions:
 npm run codegen
 ```
 
-## 📝 Writing New Tests
+## Writing New Tests
 
 ### Basic Test Structure
 
@@ -298,7 +301,7 @@ test.describe('Admin Tests', () => {
 });
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Tests Failing with Timeout
 - Increase timeout in `playwright.config.ts`
@@ -314,6 +317,6 @@ test.describe('Admin Tests', () => {
 - Use Playwright Inspector: `npx playwright test --debug`
 - Use codegen to find correct selectors: `npm run codegen`
 
-## 📜 License
+## License
 
 This test suite is part of the TicketingASP project.
