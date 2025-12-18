@@ -218,7 +218,9 @@ public class TeamRepository : ITeamRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var members = await connection.QueryAsync<TeamMemberDto>(
-                @"SELECT user_id AS UserId, email, display_name AS DisplayName, role, avatar_url AS AvatarUrl, joined_at AS JoinedAt
+                @"SELECT user_id AS UserId, email, display_name AS DisplayName, role, 
+                         CASE WHEN role = 'Leader' THEN true ELSE false END AS IsTeamLead,
+                         avatar_url AS AvatarUrl, joined_at AS JoinedAt
                   FROM sp_team_get_members(@p_team_id)",
                 new { p_team_id = teamId });
 

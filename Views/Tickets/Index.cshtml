@@ -2,7 +2,13 @@
 @using TicketingASP.Models.Common
 @model PagedResult<TicketListDto>
 @{
-    ViewData["Title"] = "Tickets";
+    var viewType = ViewBag.ViewType as string ?? "MyTickets";
+    var userRole = ViewBag.UserRole as string ?? "User";
+    var isAllTickets = viewType == "AllTickets";
+    var activeTab = ViewBag.ActiveTab as string ?? "mine";
+    var userTeams = ViewBag.UserTeams as List<TeamDto> ?? new List<TeamDto>();
+    var hasTeams = ViewBag.HasTeams as bool? ?? false;
+    ViewData["Title"] = isAllTickets ? "All Tickets" : "My Tickets";
     var filter = ViewBag.Filter as TicketFilterDto ?? new TicketFilterDto();
     var lookups = ViewBag.Lookups as TicketFormLookupsDto;
 }
@@ -12,70 +18,190 @@
         position: fixed !important;
         transform: none !important;
     }
+    .nav-tabs .nav-link {
+        color: #6c757d;
+    }
+    .nav-tabs .nav-link.active {
+        font-weight: 500;
+    }
+    .filter-toggle-btn {
+        border: 1px solid #dee2e6;
+        background-color: #f8f9fa;
+    }
+    .filter-toggle-btn:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+    .filter-toggle-btn.active-filters {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+    .filter-toggle-btn.active-filters:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+        color: white;
+    }
 </style>
 
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <div>
-                <h1 class="h3">Tickets</h1>
+                <h1 class="h3">@(isAllTickets ? "All Tickets" : "My Tickets")</h1>
                 <p class="text-muted">@Model.TotalCount tickets found</p>
             </div>
-            <a href="@Url.Action("Create")" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i> New Ticket
-            </a>
+            <div class="d-flex gap-2">
+                @if (userRole == "Manager" || userRole == "Administrator")
+                {
+                    @if (isAllTickets)
+                    {
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                            <i class="bi bi-person me-1"></i> My Tickets
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("All")" class="btn btn-outline-secondary">
+                            <i class="bi bi-list-ul me-1"></i> All Tickets
+                        </a>
+                    }
+                }
+                <a href="@Url.Action("Create")" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> New Ticket
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="row mb-4">
+    @if (!isAllTickets && userRole != "User")
+    {
+        var selectedTeamId = ViewBag.SelectedTeamId as int?;
+        
+        <!-- Tabs for My Tickets / Team Tickets -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link @(activeTab == "mine" ? "active" : "")" href="@Url.Action("Index", new { tab = "mine" })">
+                    <i class="bi bi-person me-1"></i> Assigned to Me
+                </a>
+            </li>
+            @if (hasTeams)
+            {
+                @if (userTeams.Count == 1)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(activeTab == "team" ? "active" : "")" href="@Url.Action("Index", new { tab = "team" })">
+                            <i class="bi bi-people me-1"></i> @userTeams.First().Name
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    @foreach (var team in userTeams)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(activeTab == "team" && selectedTeamId == team.Id ? "active" : "")" 
+                               href="@Url.Action("Index", new { tab = "team", teamId = team.Id })">
+                                <i class="bi bi-people me-1"></i> @team.Name
+                            </a>
+                        </li>
+                    }
+                }
+            }
+        </ul>
+    }
+
+    <!-- Filter Toggle Button and Collapsible Filters -->
+    @{
+        var hasActiveFilters = !string.IsNullOrEmpty(filter.Search) || 
+                               filter.StatusId.HasValue || 
+                               filter.PriorityId.HasValue || 
+                               filter.CategoryId.HasValue ||
+                               (isAllTickets && filter.AssignedTeamId.HasValue);
+        var activeFilterCount = (string.IsNullOrEmpty(filter.Search) ? 0 : 1) +
+                                (filter.StatusId.HasValue ? 1 : 0) +
+                                (filter.PriorityId.HasValue ? 1 : 0) +
+                                (filter.CategoryId.HasValue ? 1 : 0) +
+                                (isAllTickets && filter.AssignedTeamId.HasValue ? 1 : 0);
+    }
+    <div class="row mb-3">
         <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-3">
-                            <label for="search" class="form-label">Search</label>
-                            <input type="text" class="form-control" id="search" name="search" value="@filter.Search" placeholder="Ticket # or title...">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="statusId" class="form-label">Status</label>
-                            <select class="form-select" id="statusId" name="statusId">
-                                <option value="">All Statuses</option>
-                                @if (lookups?.Statuses != null)
+            <button class="btn filter-toggle-btn @(hasActiveFilters ? "active-filters" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#filterDrawer" aria-expanded="@(hasActiveFilters ? "true" : "false")" aria-controls="filterDrawer">
+                <i class="bi bi-funnel me-1"></i> Filters
+                @if (activeFilterCount > 0)
+                {
+                    <span class="badge bg-light text-dark ms-1">@activeFilterCount</span>
+                }
+            </button>
+            @if (hasActiveFilters)
+            {
+                <a href="@Url.Action(isAllTickets ? "All" : "Index", new { tab = activeTab, teamId = ViewBag.SelectedTeamId })" class="btn btn-link text-decoration-none ms-2">
+                    <i class="bi bi-x-circle me-1"></i> Clear filters
+                </a>
+            }
+        </div>
+    </div>
+    <div class="collapse @(hasActiveFilters ? "show" : "")" id="filterDrawer">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    @if (!isAllTickets)
+                    {
+                        <input type="hidden" name="tab" value="@activeTab" />
+                        @if (activeTab == "team" && ViewBag.SelectedTeamId != null)
+                        {
+                            <input type="hidden" name="teamId" value="@ViewBag.SelectedTeamId" />
+                        }
+                    }
+                    <div class="col-md-3">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="search" name="search" value="@filter.Search" placeholder="Ticket # or title...">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="statusId" class="form-label">Status</label>
+                        <select class="form-select" id="statusId" name="statusId">
+                            <option value="">All Open</option>
+                            @if (lookups?.Statuses != null)
+                            {
+                                @foreach (var status in lookups.Statuses)
                                 {
-                                    @foreach (var status in lookups.Statuses)
+                                    <option value="@status.Id" selected="@(filter.StatusId == status.Id)">@status.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="priorityId" class="form-label">Priority</label>
+                        <select class="form-select" id="priorityId" name="priorityId">
+                            <option value="">All Priorities</option>
+                            @if (lookups?.Priorities != null)
+                            {
+                                @foreach (var priority in lookups.Priorities)
+                                {
+                                    <option value="@priority.Id" selected="@(filter.PriorityId == priority.Id)">@priority.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="categoryId" class="form-label">Category</label>
+                        <select class="form-select" id="categoryId" name="categoryId">
+                            <option value="">All Categories</option>
+                            @if (lookups?.Categories != null)
+                            {
+                                @foreach (var category in lookups.Categories)
+                                {
+                                    <option value="@category.Id" selected="@(filter.CategoryId == category.Id)">@category.Name</option>
+                                    @foreach (var subCategory in category.SubCategories)
                                     {
-                                        <option value="@status.Id" selected="@(filter.StatusId == status.Id)">@status.Name</option>
+                                        <option value="@subCategory.Id" selected="@(filter.CategoryId == subCategory.Id)">&nbsp;&nbsp;— @subCategory.Name</option>
                                     }
                                 }
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="priorityId" class="form-label">Priority</label>
-                            <select class="form-select" id="priorityId" name="priorityId">
-                                <option value="">All Priorities</option>
-                                @if (lookups?.Priorities != null)
-                                {
-                                    @foreach (var priority in lookups.Priorities)
-                                    {
-                                        <option value="@priority.Id" selected="@(filter.PriorityId == priority.Id)">@priority.Name</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="categoryId" class="form-label">Category</label>
-                            <select class="form-select" id="categoryId" name="categoryId">
-                                <option value="">All Categories</option>
-                                @if (lookups?.Categories != null)
-                                {
-                                    @foreach (var category in lookups.Categories)
-                                    {
-                                        <option value="@category.Id" selected="@(filter.CategoryId == category.Id)">@category.Name</option>
-                                    }
-                                }
-                            </select>
-                        </div>
+                            }
+                        </select>
+                    </div>
+                    @if (isAllTickets)
+                    {
                         <div class="col-md-2">
                             <label for="assignedTeamId" class="form-label">Team</label>
                             <select class="form-select" id="assignedTeamId" name="assignedTeamId">
@@ -89,11 +215,13 @@
                                 }
                             </select>
                         </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
-                        </div>
-                    </form>
-                </div>
+                    }
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -142,18 +270,14 @@
                                                 <span class="badge" style="background-color: @ticket.PriorityColour">@ticket.PriorityName</span>
                                             </td>
                                             <td>@ticket.CategoryName</td>
-                                            <td>
+                                            <td class="@(string.IsNullOrEmpty(ticket.AssignedToName) ? "table-warning" : "")">
                                                 @if (!string.IsNullOrEmpty(ticket.AssignedToName))
                                                 {
                                                     @ticket.AssignedToName
                                                 }
-                                                else if (!string.IsNullOrEmpty(ticket.TeamName))
-                                                {
-                                                    @ticket.TeamName
-                                                }
                                                 else
                                                 {
-                                                    <em class="text-muted">Unassigned</em>
+                                                    <em class="text-dark fw-medium">Unassigned</em>
                                                 }
                                             </td>
                                             <td>@ticket.CreatedAt.ToString("MMM dd, yyyy")</td>

@@ -347,6 +347,69 @@ public class DtoValidationTests
 
     #endregion
 
+    #region TicketFilterDto Tests
+
+    [Fact]
+    public void TicketFilterDto_DefaultValues_AreCorrect()
+    {
+        // Arrange
+        var dto = new TicketFilterDto();
+
+        // Assert
+        dto.PageNumber.Should().Be(1);
+        dto.PageSize.Should().Be(20);
+        dto.IncludeClosed.Should().BeFalse();
+        dto.StatusId.Should().BeNull();
+        dto.PriorityId.Should().BeNull();
+        dto.CategoryId.Should().BeNull();
+        dto.AssignedToId.Should().BeNull();
+        dto.AssignedTeamId.Should().BeNull();
+        dto.RequesterId.Should().BeNull();
+        dto.Search.Should().BeNull();
+    }
+
+    [Fact]
+    public void TicketFilterDto_IncludeClosed_CanBeSetToTrue()
+    {
+        // Arrange
+        var dto = new TicketFilterDto
+        {
+            IncludeClosed = true
+        };
+
+        // Assert
+        dto.IncludeClosed.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TicketFilterDto_WithAllFilters_PassesValidation()
+    {
+        // Arrange
+        var dto = new TicketFilterDto
+        {
+            PageNumber = 1,
+            PageSize = 50,
+            Search = "test search",
+            StatusId = 1,
+            PriorityId = 2,
+            CategoryId = 3,
+            AssignedToId = 4,
+            AssignedTeamId = 5,
+            RequesterId = 6,
+            DateFrom = DateTime.UtcNow.AddDays(-30),
+            DateTo = DateTime.UtcNow,
+            IncludeClosed = true
+        };
+
+        // Act
+        var results = ValidateModel(dto);
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private static List<ValidationResult> ValidateModel(object model)

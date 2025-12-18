@@ -130,7 +130,7 @@ public class LookupRepository : ILookupRepository
             await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             
             var result = await connection.QueryAsync<AgentLookupDto>(
-                "SELECT id AS Id, display_name AS DisplayName, email AS Email FROM sp_lookup_agents()");
+                "SELECT id AS Id, display_name AS Name, display_name AS DisplayName, email AS Email FROM sp_lookup_agents()");
 
             _logger.LogDebug("Loaded {Count} agents", result.Count());
             return result.ToList();
@@ -150,7 +150,7 @@ public class LookupRepository : ILookupRepository
             
             // Get support staff roles only (Admin=1, Manager=2, Agent=3), excluding User role
             var result = await connection.QueryAsync<LookupItemDto>(
-                "SELECT id AS Id, name AS Name FROM roles WHERE is_active = true AND id IN (1, 2, 3) ORDER BY id");
+                "SELECT Id, Name FROM Roles WHERE IsActive = true AND Id IN (1, 2, 3) ORDER BY Id");
 
             _logger.LogDebug("Loaded {Count} roles", result.Count());
             return result.ToList();

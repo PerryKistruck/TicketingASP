@@ -178,15 +178,25 @@ BEGIN
     END IF;
 
     -- Update the ticket
+    -- Note: For AssignedToId and AssignedTeamId, value of 0 means explicitly unassign (set to NULL)
+    -- NULL means keep the existing value
     UPDATE Tickets
     SET Title = COALESCE(p_title, Title),
         Description = COALESCE(p_description, Description),
         CategoryId = COALESCE(p_category_id, CategoryId),
         PriorityId = COALESCE(p_priority_id, PriorityId),
         StatusId = COALESCE(p_status_id, StatusId),
-        AssignedToId = p_assigned_to_id,
-        AssignedTeamId = p_assigned_team_id,
-        DueDate = p_due_date,
+        AssignedToId = CASE 
+            WHEN p_assigned_to_id = 0 THEN NULL 
+            WHEN p_assigned_to_id IS NULL THEN AssignedToId 
+            ELSE p_assigned_to_id 
+        END,
+        AssignedTeamId = CASE 
+            WHEN p_assigned_team_id = 0 THEN NULL 
+            WHEN p_assigned_team_id IS NULL THEN AssignedTeamId 
+            ELSE p_assigned_team_id 
+        END,
+        DueDate = COALESCE(p_due_date, DueDate),
         Tags = COALESCE(p_tags, Tags),
         UpdatedAt = CURRENT_TIMESTAMP,
         UpdatedBy = p_updated_by,
@@ -218,11 +228,24 @@ BEGIN
                 (SELECT Name FROM Statuses WHERE Id = p_status_id), p_ip_address);
     END IF;
 
-    IF p_assigned_to_id IS DISTINCT FROM v_old_record.AssignedToId THEN
+    -- Record agent assignment changes (0 means unassign, NULL means no change)
+    IF (p_assigned_to_id = 0 AND v_old_record.AssignedToId IS NOT NULL) OR
+       (p_assigned_to_id IS NOT NULL AND p_assigned_to_id != 0 AND p_assigned_to_id IS DISTINCT FROM v_old_record.AssignedToId) THEN
         INSERT INTO TicketHistory (TicketId, UserId, Action, FieldName, OldValue, NewValue, IpAddress)
         VALUES (p_ticket_id, p_updated_by, 'Assigned', 'AssignedTo',
                 (SELECT DisplayName FROM Users WHERE Id = v_old_record.AssignedToId),
-                (SELECT DisplayName FROM Users WHERE Id = p_assigned_to_id), p_ip_address);
+                CASE WHEN p_assigned_to_id = 0 THEN NULL ELSE (SELECT DisplayName FROM Users WHERE Id = p_assigned_to_id) END, 
+                p_ip_address);
+    END IF;
+
+    -- Record team assignment changes (0 means unassign, NULL means no change)
+    IF (p_assigned_team_id = 0 AND v_old_record.AssignedTeamId IS NOT NULL) OR
+       (p_assigned_team_id IS NOT NULL AND p_assigned_team_id != 0 AND p_assigned_team_id IS DISTINCT FROM v_old_record.AssignedTeamId) THEN
+        INSERT INTO TicketHistory (TicketId, UserId, Action, FieldName, OldValue, NewValue, IpAddress)
+        VALUES (p_ticket_id, p_updated_by, 'TeamAssigned', 'AssignedTeam',
+                (SELECT Name FROM Teams WHERE Id = v_old_record.AssignedTeamId),
+                CASE WHEN p_assigned_team_id = 0 THEN NULL ELSE (SELECT Name FROM Teams WHERE Id = p_assigned_team_id) END, 
+                p_ip_address);
     END IF;
 
     RETURN QUERY SELECT TRUE, 'Ticket updated successfully'::VARCHAR(255);
@@ -262,6 +285,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- =====================================================
 -- LIST TICKETS WITH PAGINATION AND FILTERS
 -- =====================================================
+-- Drop existing function first (return type changed)
+DROP FUNCTION IF EXISTS sp_ticket_list(INT, INT, VARCHAR, INT, INT, INT, INT, INT, INT, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH TIME ZONE, BOOLEAN, INT, VARCHAR);
+
 CREATE OR REPLACE FUNCTION sp_ticket_list(
     p_page_number INT DEFAULT 1,
     p_page_size INT DEFAULT 20,
@@ -286,9 +312,12 @@ RETURNS TABLE(
     priority_color VARCHAR(7),
     status_name VARCHAR(50),
     status_color VARCHAR(7),
+    category_id INT,
+    category_name VARCHAR(100),
     requester_name VARCHAR(200),
     assigned_to_name VARCHAR(200),
     team_name VARCHAR(100),
+    due_date TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE,
     updated_at TIMESTAMP WITH TIME ZONE,
     total_count BIGINT
@@ -323,14 +352,17 @@ BEGIN
     SELECT t.Id, t.TicketNumber, t.Title,
            p.Name AS priority_name, p.Color AS priority_color,
            s.Name AS status_name, s.Color AS status_color,
+           t.CategoryId AS category_id, c.Name AS category_name,
            ur.DisplayName AS requester_name,
            ua.DisplayName AS assigned_to_name,
            tm.Name AS team_name,
+           t.DueDate AS due_date,
            t.CreatedAt, t.UpdatedAt,
            v_total AS total_count
     FROM Tickets t
     LEFT JOIN Priorities p ON t.PriorityId = p.Id
     LEFT JOIN Statuses s ON t.StatusId = s.Id
+    LEFT JOIN Categories c ON t.CategoryId = c.Id
     LEFT JOIN Users ur ON t.RequesterId = ur.Id
     LEFT JOIN Users ua ON t.AssignedToId = ua.Id
     LEFT JOIN Teams tm ON t.AssignedTeamId = tm.Id

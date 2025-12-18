@@ -1,0 +1,222 @@
+@using TicketingASP.Models.DTOs
+@model UserDetailDto
+@{
+    ViewData["Title"] = Model.DisplayName;
+    var roles = ViewBag.Roles as List<LookupItemDto> ?? new List<LookupItemDto>();
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-start">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Users</a></li>
+                        <li class="breadcrumb-item active">@Model.DisplayName</li>
+                    </ol>
+                </nav>
+                <h1 class="h3">@Model.DisplayName</h1>
+                @if (Model.IsLocked)
+                {
+                    <span class="badge bg-danger me-1">Locked</span>
+                }
+                @if (!Model.IsActive)
+                {
+                    <span class="badge bg-secondary">Inactive</span>
+                }
+            </div>
+            <div class="d-flex gap-2">
+                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i> Edit
+                </a>
+                <form method="post" asp-action="Delete" asp-route-id="@Model.Id" onsubmit="return confirm('Are you sure you want to deactivate this user?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i> Deactivate
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- User Details -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                        {
+                            <img src="@Model.AvatarUrl" alt="@Model.DisplayName" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="avatar-circle mx-auto" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                @Model.FirstName.Substring(0, 1).ToUpper()@Model.LastName.Substring(0, 1).ToUpper()
+                            </div>
+                        }
+                    </div>
+                    <dl class="mb-0">
+                        <dt>Email</dt>
+                        <dd><a href="mailto:@Model.Email">@Model.Email</a></dd>
+                        
+                        <dt>Full Name</dt>
+                        <dd>@Model.FirstName @Model.LastName</dd>
+                        
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <dt>Phone</dt>
+                            <dd>@Model.Phone</dd>
+                        }
+                        
+                        <dt>Status</dt>
+                        <dd>
+                            @if (Model.IsLocked)
+                            {
+                                <span class="badge bg-danger">Locked</span>
+                                <form asp-action="Unlock" asp-route-id="@Model.Id" method="post" class="d-inline ms-2">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-unlock"></i> Unlock
+                                    </button>
+                                </form>
+                            }
+                            else if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </dd>
+                        
+                        <dt>Reset Password</dt>
+                        <dd>
+                            <form asp-action="ResetPassword" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="password" name="newPassword" class="form-control form-control-sm d-inline-block" style="width: 150px;" placeholder="New password" required />
+                                <button type="submit" class="btn btn-secondary btn-sm ms-1">
+                                    <i class="fas fa-key"></i> Reset
+                                </button>
+                            </form>
+                        </dd>
+                        
+                        <dt>Last Login</dt>
+                        <dd>
+                            @if (Model.LastLoginAt.HasValue)
+                            {
+                                @Model.LastLoginAt.Value.ToString("MMM dd, yyyy h:mm tt")
+                            }
+                            else
+                            {
+                                <span class="text-muted">Never</span>
+                            }
+                        </dd>
+                        
+                        <dt>Created</dt>
+                        <dd>@Model.CreatedAt.ToString("MMM dd, yyyy")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Roles</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Roles.Any())
+                    {
+                        <div class="mb-3">
+                            @foreach (var role in Model.Roles)
+                            {
+                                <span class="badge bg-primary me-1 mb-1">@role.Name</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No roles assigned</p>
+                    }
+
+                    <hr>
+
+                    <h6>Assign Role</h6>
+                    <form method="post" asp-action="AssignRole" asp-route-id="@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <div class="input-group">
+                            <select class="form-select" name="roleId" required>
+                                <option value="">Select a role...</option>
+                                @foreach (var role in roles)
+                                {
+                                    <option value="@role.Id">@role.Name</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-primary">Assign</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teams -->
+        <div class="col-md-12 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Teams</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Teams.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var team in Model.Teams)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="@Url.Action("Details", "Teams", new { id = team.Id })">@team.Name</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center mb-0">Not a member of any team</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        background-color: #6c757d;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+    }
+</style>

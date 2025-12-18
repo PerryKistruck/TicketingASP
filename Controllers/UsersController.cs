@@ -14,12 +14,14 @@ public class UsersController : Controller
 {
     private readonly IUserService _userService;
     private readonly ILookupService _lookupService;
+    private readonly ITeamService _teamService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService, ILookupService lookupService, ILogger<UsersController> logger)
+    public UsersController(IUserService userService, ILookupService lookupService, ITeamService teamService, ILogger<UsersController> logger)
     {
         _userService = userService;
         _lookupService = lookupService;
+        _teamService = teamService;
         _logger = logger;
     }
 
@@ -50,6 +52,10 @@ public class UsersController : Controller
             return NotFound();
         }
 
+        // Load user's teams
+        user.Teams = await _teamService.GetUserTeamsAsync(id);
+        
+        ViewBag.Roles = await _lookupService.GetRolesAsync();
         return View(user);
     }
 
@@ -183,6 +189,56 @@ public class UsersController : Controller
         else
         {
             TempData["SuccessMessage"] = "Role assigned successfully!";
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    /// <summary>
+    /// Unlock a locked user account
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Unlock(int id)
+    {
+        var unlockedBy = GetCurrentUserId();
+        var result = await _userService.UnlockUserAsync(id, unlockedBy);
+
+        if (!result.Success)
+        {
+            TempData["ErrorMessage"] = result.Message;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "User account unlocked successfully!";
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    /// <summary>
+    /// Reset user password to a known test password (for testing purposes)
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(int id, string newPassword)
+    {
+        if (string.IsNullOrEmpty(newPassword))
+        {
+            TempData["ErrorMessage"] = "Password cannot be empty";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var resetBy = GetCurrentUserId();
+        var result = await _userService.ResetPasswordAsync(id, newPassword, resetBy);
+
+        if (!result.Success)
+        {
+            TempData["ErrorMessage"] = result.Message;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "Password reset successfully!";
         }
 
         return RedirectToAction(nameof(Details), new { id });

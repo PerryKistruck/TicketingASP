@@ -19,6 +19,8 @@ public interface IUserRepository
     Task<OperationResult> AssignRoleAsync(int userId, int roleId, int assignedBy);
     Task<List<RoleDto>> GetRolesAsync(int userId);
     Task UpdateLoginAttemptAsync(int userId, bool success, string? ipAddress = null, string? userAgent = null);
+    Task<OperationResult> UnlockUserAsync(int userId, int unlockedBy);
+    Task<OperationResult> ResetPasswordAsync(int userId, string passwordHash, string passwordSalt, int resetBy);
 }
 
 /// <summary>
@@ -270,6 +272,58 @@ public class UserRepository : IUserRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating login attempt for user {UserId}", userId);
+        }
+    }
+
+    public async Task<OperationResult> UnlockUserAsync(int userId, int unlockedBy)
+    {
+        try
+        {
+            await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            
+            // Reset failed login attempts and unlock the user
+            await connection.ExecuteAsync(
+                @"UPDATE users 
+                  SET islocked = FALSE, 
+                      failedloginattempts = 0,
+                      updatedat = NOW()
+                  WHERE id = @userId",
+                new { userId });
+            
+            _logger.LogInformation("User {UserId} unlocked by {UnlockedBy}", userId, unlockedBy);
+            return OperationResult.SuccessResult("User account unlocked successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unlocking user {UserId}", userId);
+            return OperationResult.FailureResult("An error occurred while unlocking the user account");
+        }
+    }
+
+    public async Task<OperationResult> ResetPasswordAsync(int userId, string passwordHash, string passwordSalt, int resetBy)
+    {
+        try
+        {
+            await using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            
+            // Update password hash and salt
+            await connection.ExecuteAsync(
+                @"UPDATE users 
+                  SET passwordhash = @passwordHash, 
+                      passwordsalt = @passwordSalt,
+                      islocked = FALSE,
+                      failedloginattempts = 0,
+                      updatedat = NOW()
+                  WHERE id = @userId",
+                new { userId, passwordHash, passwordSalt });
+            
+            _logger.LogInformation("Password reset for user {UserId} by {ResetBy}", userId, resetBy);
+            return OperationResult.SuccessResult("Password reset successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting password for user {UserId}", userId);
+            return OperationResult.FailureResult("An error occurred while resetting the password");
         }
     }
 }

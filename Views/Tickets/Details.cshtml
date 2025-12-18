@@ -3,6 +3,20 @@
 @{
     ViewData["Title"] = $"Ticket {Model.TicketNumber}";
     var lookups = ViewBag.Lookups as TicketFormLookupsDto;
+    
+    // Helper function to determine if text should be dark based on background color luminance
+    string GetTextColor(string? hexColor)
+    {
+        if (string.IsNullOrEmpty(hexColor)) return "#000000";
+        var hex = hexColor.TrimStart('#');
+        if (hex.Length < 6) return "#000000";
+        var r = Convert.ToInt32(hex.Substring(0, 2), 16);
+        var g = Convert.ToInt32(hex.Substring(2, 2), 16);
+        var b = Convert.ToInt32(hex.Substring(4, 2), 16);
+        // Calculate relative luminance
+        var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.5 ? "#000000" : "#FFFFFF";
+    }
 }
 
 <div class="container-fluid">
@@ -18,8 +32,8 @@
                 </nav>
                 <h1 class="h3">@Model.Title</h1>
                 <div class="d-flex gap-2 mt-2">
-                    <span class="badge fs-6" style="background-color: @Model.StatusColour">@Model.StatusName</span>
-                    <span class="badge fs-6" style="background-color: @Model.PriorityColour">@Model.PriorityName</span>
+                    <span class="badge fs-6" style="background-color: @Model.StatusColour; color: @GetTextColor(Model.StatusColour)">@Model.StatusName</span>
+                    <span class="badge fs-6" style="background-color: @Model.PriorityColour; color: @GetTextColor(Model.PriorityColour)">@Model.PriorityName</span>
                     <span class="badge bg-secondary fs-6">@Model.CategoryName</span>
                 </div>
             </div>
@@ -299,7 +313,14 @@
         }
 
         function assignTeam(teamId) {
-            fetch('@Url.Action("Assign")/' + ticketId + '?assignedTeamId=' + (teamId || ''), {
+            // Preserve current agent when changing team
+            // Use 0 to indicate "unassign", empty/null means "keep current"
+            const currentAgentId = document.getElementById('agentSelect').value;
+            let url = '@Url.Action("Assign")/' + ticketId + '?assignedTeamId=' + (teamId || '0');
+            if (currentAgentId) {
+                url += '&assignedToId=' + currentAgentId;
+            }
+            fetch(url, {
                 method: 'POST',
                 headers: {
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
@@ -316,7 +337,14 @@
         }
 
         function assignAgent(agentId) {
-            fetch('@Url.Action("Assign")/' + ticketId + '?assignedToId=' + (agentId || ''), {
+            // Preserve current team when changing agent
+            // Use 0 to indicate "unassign", empty/null means "keep current"
+            const currentTeamId = document.getElementById('teamSelect').value;
+            let url = '@Url.Action("Assign")/' + ticketId + '?assignedToId=' + (agentId || '0');
+            if (currentTeamId) {
+                url += '&assignedTeamId=' + currentTeamId;
+            }
+            fetch(url, {
                 method: 'POST',
                 headers: {
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value

@@ -368,9 +368,9 @@ public class TicketServiceTests
     }
 
     [Fact]
-    public async Task AssignTicketAsync_WithNullValues_UpdatesTicketWithNulls()
+    public async Task AssignTicketAsync_WithNullValues_PassesNullToRepository()
     {
-        // Arrange
+        // Arrange - when null is passed, it means "keep current value" (handled by stored procedure)
         var ticketId = 1;
         var updatedBy = 1;
 
@@ -382,6 +382,74 @@ public class TicketServiceTests
 
         // Act
         var result = await _sut.AssignTicketAsync(ticketId, null, null, updatedBy);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        _mockTicketRepository.Verify(r => r.UpdateAsync(ticketId, 
+            It.Is<UpdateTicketDto>(d => d.AssignedToId == null && d.AssignedTeamId == null), 
+            updatedBy, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task AssignTicketAsync_WithZeroValues_PassesZeroToRepository()
+    {
+        // Arrange - when 0 is passed, it means "unassign" (stored procedure sets to NULL)
+        var ticketId = 1;
+        var updatedBy = 1;
+
+        _mockTicketRepository
+            .Setup(r => r.UpdateAsync(ticketId, It.Is<UpdateTicketDto>(d => 
+                d.AssignedToId == 0 && d.AssignedTeamId == 0), 
+                updatedBy, null))
+            .ReturnsAsync(OperationResult.SuccessResult());
+
+        // Act
+        var result = await _sut.AssignTicketAsync(ticketId, 0, 0, updatedBy);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        _mockTicketRepository.Verify(r => r.UpdateAsync(ticketId, 
+            It.Is<UpdateTicketDto>(d => d.AssignedToId == 0 && d.AssignedTeamId == 0), 
+            updatedBy, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task AssignTicketAsync_WithOnlyAgent_PreservesTeamByPassingNull()
+    {
+        // Arrange - passing null for team means "keep current team"
+        var ticketId = 1;
+        var assignedToId = 5;
+        var updatedBy = 1;
+
+        _mockTicketRepository
+            .Setup(r => r.UpdateAsync(ticketId, It.Is<UpdateTicketDto>(d => 
+                d.AssignedToId == assignedToId && d.AssignedTeamId == null), 
+                updatedBy, null))
+            .ReturnsAsync(OperationResult.SuccessResult());
+
+        // Act
+        var result = await _sut.AssignTicketAsync(ticketId, assignedToId, null, updatedBy);
+
+        // Assert
+        result.Success.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AssignTicketAsync_WithOnlyTeam_PreservesAgentByPassingNull()
+    {
+        // Arrange - passing null for agent means "keep current agent"
+        var ticketId = 1;
+        var assignedTeamId = 3;
+        var updatedBy = 1;
+
+        _mockTicketRepository
+            .Setup(r => r.UpdateAsync(ticketId, It.Is<UpdateTicketDto>(d => 
+                d.AssignedToId == null && d.AssignedTeamId == assignedTeamId), 
+                updatedBy, null))
+            .ReturnsAsync(OperationResult.SuccessResult());
+
+        // Act
+        var result = await _sut.AssignTicketAsync(ticketId, null, assignedTeamId, updatedBy);
 
         // Assert
         result.Success.Should().BeTrue();

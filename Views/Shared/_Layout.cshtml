@@ -42,6 +42,11 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" asp-controller="Tickets" asp-action="Index">My Tickets</a></li>
+                                    @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="Tickets" asp-action="All">All Tickets</a></li>
+                                    }
+                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" asp-controller="Tickets" asp-action="Create">Create Ticket</a></li>
                                 </ul>
                             </li>

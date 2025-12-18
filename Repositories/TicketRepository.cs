@@ -169,8 +169,11 @@ public class TicketRepository : ITicketRepository
             
             var tickets = await connection.QueryAsync<TicketListDto>(
                 @"SELECT id, ticket_number AS TicketNumber, title, priority_name AS PriorityName, priority_color AS PriorityColour,
-                         status_name AS StatusName, status_color AS StatusColour, requester_name AS RequesterName,
-                         assigned_to_name AS AssignedToName, team_name AS TeamName, created_at AS CreatedAt, updated_at AS UpdatedAt,
+                         status_name AS StatusName, status_color AS StatusColour, 
+                         category_id AS CategoryId, category_name AS CategoryName,
+                         requester_name AS RequesterName,
+                         assigned_to_name AS AssignedToName, team_name AS TeamName, 
+                         due_date AS DueDate, created_at AS CreatedAt, updated_at AS UpdatedAt,
                          total_count AS TotalCount
                   FROM sp_ticket_list(@p_page_number, @p_page_size, @p_search, @p_status_id, @p_priority_id, @p_category_id,
                                       @p_assigned_to_id, @p_assigned_team_id, @p_requester_id, @p_date_from, @p_date_to,

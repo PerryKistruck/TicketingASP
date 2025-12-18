@@ -1,0 +1,29 @@
+{
+  "name": "ticketingasp-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for TicketingASP application using Playwright",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "test:debug": "npx playwright test --debug",
+    "test:security": "npx playwright test tests/security/",
+    "test:auth": "npx playwright test tests/auth/",
+    "test:tickets": "npx playwright test tests/tickets/",
+    "test:admin": "npx playwright test tests/admin/",
+    "report": "npx playwright show-report",
+    "codegen": "npx playwright codegen http://localhost:5000"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "pg": "^8.11.0",
+    "@types/pg": "^8.10.0"
+  },
+  "keywords": [
+    "playwright",
+    "e2e",
+    "testing",
+    "security"
+  ]
+}

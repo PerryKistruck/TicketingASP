@@ -20,6 +20,8 @@ public interface IUserService
     Task<OperationResult> AssignRoleAsync(int userId, int roleId, int assignedBy);
     Task<List<RoleDto>> GetUserRolesAsync(int userId);
     Task<OperationResult> ChangePasswordAsync(int userId, ChangePasswordDto dto);
+    Task<OperationResult> UnlockUserAsync(int userId, int unlockedBy);
+    Task<OperationResult> ResetPasswordAsync(int userId, string newPassword, int resetBy);
 }
 
 /// <summary>
@@ -210,4 +212,18 @@ public class UserService : IUserService
     }
 
     #endregion
+
+    public async Task<OperationResult> UnlockUserAsync(int userId, int unlockedBy)
+    {
+        _logger.LogInformation("Unlocking user {UserId} by {UnlockedBy}", userId, unlockedBy);
+        return await _userRepository.UnlockUserAsync(userId, unlockedBy);
+    }
+
+    public async Task<OperationResult> ResetPasswordAsync(int userId, string newPassword, int resetBy)
+    {
+        _logger.LogInformation("Resetting password for user {UserId} by {ResetBy}", userId, resetBy);
+        
+        var (hash, salt) = HashPassword(newPassword);
+        return await _userRepository.ResetPasswordAsync(userId, hash, salt, resetBy);
+    }
 }

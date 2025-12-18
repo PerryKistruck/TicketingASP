@@ -107,13 +107,17 @@
                                             <td>@member.DisplayName</td>
                                             <td>@member.Email</td>
                                             <td>
-                                                @if (member.IsTeamLead)
+                                                @if (member.Role == "Leader" || member.IsTeamLead)
                                                 {
                                                     <span class="badge bg-primary">Team Lead</span>
                                                 }
+                                                else if (member.Role == "Owner")
+                                                {
+                                                    <span class="badge bg-warning text-dark">Owner</span>
+                                                }
                                                 else
                                                 {
-                                                    <span class="badge bg-secondary">Member</span>
+                                                    <span class="badge bg-secondary">@(string.IsNullOrEmpty(member.Role) ? "Member" : member.Role)</span>
                                                 }
                                             </td>
                                             <td>@member.JoinedAt.ToString("MMM dd, yyyy")</td>

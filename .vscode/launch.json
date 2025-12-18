@@ -1,0 +1,119 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch TicketingASP",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/TicketingASP.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": "Launch TicketingASP (No Browser)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/TicketingASP.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Attach to Process",
+      "type": "coreclr",
+      "request": "attach"
+    },
+    {
+      "name": "Run Unit Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-tests",
+      "program": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/TicketingASP.Tests/TicketingASP.Tests.csproj",
+        "--no-build"
+      ],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Playwright Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playwright-tests",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "playwright",
+        "test",
+        "--debug"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run Playwright Tests (Headed)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playwright-tests",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "playwright",
+        "test",
+        "--headed"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run Playwright Tests (Headless - Fast)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playwright-tests",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "playwright",
+        "test",
+        "--workers=4"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run Playwright Tests (Chromium Only - Fastest)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/playwright-tests",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "playwright",
+        "test",
+        "--project=chromium",
+        "--workers=4"
+      ],
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch App + Run Playwright",
+      "configurations": ["Launch TicketingASP (No Browser)"],
+      "stopAll": true,
+      "preLaunchTask": "wait-for-app"
+    }
+  ]
+}

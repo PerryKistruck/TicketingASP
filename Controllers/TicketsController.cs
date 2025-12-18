@@ -13,32 +13,73 @@ public class TicketsController : Controller
 {
     private readonly ITicketService _ticketService;
     private readonly ILookupService _lookupService;
+    private readonly ITeamService _teamService;
     private readonly ILogger<TicketsController> _logger;
 
     public TicketsController(
         ITicketService ticketService, 
         ILookupService lookupService,
+        ITeamService teamService,
         ILogger<TicketsController> logger)
     {
         _ticketService = ticketService;
         _lookupService = lookupService;
+        _teamService = teamService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Display ticket list with filtering
-    /// Users see only their tickets, Agents/Managers/Admins see all
+    /// Display "My Tickets" - tickets relevant to the current user
+    /// Supports tabs: "mine" for personal tickets, "team" for team tickets
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> Index([FromQuery] TicketFilterDto filter)
+    public async Task<IActionResult> Index([FromQuery] TicketFilterDto filter, string tab = "mine", int? teamId = null)
     {
         var userId = GetCurrentUserId();
         var userRole = GetCurrentUserRole();
 
-        // Regular users can only see their own tickets
-        if (userRole == "User")
+        // Get user's teams for the team tab
+        var userTeams = await _teamService.GetUserTeamsAsync(userId);
+        var hasTeams = userTeams.Any();
+
+        // If a specific status is selected, include closed tickets in the query
+        // so the user can see resolved/closed tickets when they explicitly filter for them
+        if (filter.StatusId.HasValue)
         {
-            filter.RequesterId = userId;
+            filter.IncludeClosed = true;
+        }
+
+        if (tab == "team" && hasTeams)
+        {
+            // Show tickets assigned to user's teams
+            filter.AssignedToId = null;
+            filter.RequesterId = null;
+            
+            // If user specified a team, use that; otherwise use first team
+            if (teamId.HasValue && userTeams.Any(t => t.Id == teamId.Value))
+            {
+                filter.AssignedTeamId = teamId.Value;
+            }
+            else
+            {
+                filter.AssignedTeamId = userTeams.First().Id;
+                teamId = userTeams.First().Id;
+            }
+        }
+        else
+        {
+            // Default "mine" tab
+            if (userRole == "User")
+            {
+                // Regular users see only tickets they created
+                filter.RequesterId = userId;
+            }
+            else
+            {
+                // Agents, Managers, Admins see tickets assigned to them
+                filter.AssignedToId = userId;
+            }
+            tab = "mine"; // Reset to mine if team tab was requested but user has no teams
         }
 
         var tickets = await _ticketService.GetTicketsAsync(filter, userId, userRole);
@@ -47,8 +88,41 @@ public class TicketsController : Controller
         ViewBag.Filter = filter;
         ViewBag.Lookups = lookups;
         ViewBag.UserRole = userRole;
+        ViewBag.ViewType = "MyTickets";
+        ViewBag.ActiveTab = tab;
+        ViewBag.UserTeams = userTeams;
+        ViewBag.HasTeams = hasTeams;
+        ViewBag.SelectedTeamId = teamId;
 
         return View(tickets);
+    }
+
+    /// <summary>
+    /// Display all tickets - available to Managers and Admins for global ticket management
+    /// </summary>
+    [HttpGet]
+    [Authorize(Policy = "ManagerOrAdmin")]
+    public async Task<IActionResult> All([FromQuery] TicketFilterDto filter)
+    {
+        var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
+
+        // If a specific status is selected, include closed tickets in the query
+        if (filter.StatusId.HasValue)
+        {
+            filter.IncludeClosed = true;
+        }
+
+        // No filtering - show all tickets
+        var tickets = await _ticketService.GetTicketsAsync(filter, userId, userRole);
+        var lookups = await _lookupService.GetAllLookupsAsync();
+
+        ViewBag.Filter = filter;
+        ViewBag.Lookups = lookups;
+        ViewBag.UserRole = userRole;
+        ViewBag.ViewType = "AllTickets";
+
+        return View("Index", tickets);
     }
 
     /// <summary>

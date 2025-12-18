@@ -24,6 +24,19 @@ public static class MiddlewareExtensions
             app.UseHsts();
         }
 
+        // Add security headers
+        app.Use(async (context, next) =>
+        {
+            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+            context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+            context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+            // Remove server header if possible
+            context.Response.Headers.Remove("Server");
+            context.Response.Headers.Remove("X-Powered-By");
+            await next();
+        });
+
         app.UseHttpsRedirection();
         app.UseStaticFiles();
 
